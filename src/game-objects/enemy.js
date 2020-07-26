@@ -2,7 +2,7 @@ export default class Enemy extends Phaser.Physics.Matter.Sprite {
 	constructor (config) {
         super(config.world, config.x, config.y, config.key);
 
-		this.setScale(0.04, 0.04);
+		this.setScale(0.05, 0.05);
 		
 		this.setAlpha(0.1, 0.1, 0.1, 0.1);
         
