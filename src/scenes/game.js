@@ -6,6 +6,7 @@ import soundOnImg from '../assets/white_soundOn.png';
 import soundOffImg from '../assets/white_soundOff.png';
 // Game Objects
 import Player from '../game-objects/player';
+import Enemy from '../game-objects/enemy';
 
 class playGame extends Phaser.Scene {
     constructor () {
@@ -28,6 +29,8 @@ class playGame extends Phaser.Scene {
 		this.background = this.add.tileSprite(0, 0, this.cameras.main.width * 2, this.cameras.main.height * 2, 'background');
 
         this.player = new Player({ world: this.matter.world, x: 400, y: 150, key: 'devil' });
+        this.enemy = new Enemy({ world: this.matter.world, x: 350, y: 50, key: 'demon_eye' });
+        this.enemy.body.angle = Math.atan2(this.enemy.y - this.player.y, this.enemy.x - this.player.x);
 
 		this.soundOn = this.make.image({
 			key: 'sound_on',
@@ -60,6 +63,10 @@ class playGame extends Phaser.Scene {
 			var angle = Math.atan2(this.input.activePointer.worldY - this.player.y, this.input.activePointer.worldX - this.player.x) + Phaser.Math.DegToRad(90);
 
             this.player.body.angle = angle;
+
+            this.enemy.x = -(0.05 * this.accumMS * Math.cos(this.enemy.angle + Math.PI / 2)) + this.enemy.x;
+            this.enemy.y = -(0.05 * this.accumMS * Math.sin(this.enemy.angle + Math.PI / 2)) + this.enemy.y;
+
 		}
 
 		while (this.accumMS >= this.hzMS) {
@@ -78,6 +85,16 @@ class playGame extends Phaser.Scene {
             this.music.play();
         }
     }
+    moveForward(object) {
+        object.x = 2 * Math.cos(angleOfAttack) + this.x;
+        object.y = 2 * Math.sin(angleOfAttack) + this.y;
+    }
+	distanceTo(source, target) {
+		let dx = source.x - target.x;
+		let dy = source.y - target.y;
+
+		return Math.sqrt(dx * dx + dy * dy);
+	}
 }
 
 export default playGame;
