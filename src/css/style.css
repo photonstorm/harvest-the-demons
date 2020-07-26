@@ -2,3 +2,7 @@ body {
     margin: 0;
     background: 0;
 }
+
+canvas {
+    filter: brightness(300%);
+}

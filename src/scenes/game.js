@@ -1,7 +1,7 @@
 // Images
-import backgroundImg from '../assets/cateyesbg.png';
+import catEyesImg from '../assets/cateyesbg.png';
 import demonEyeImg from '../assets/demon-eye.png';
-import devilImg from '../assets/devil-animation.gif';
+import flameDemonImg from '../assets/Flame_Demon_ Evolved.png';
 import soundOnImg from '../assets/white_soundOn.png';
 import soundOffImg from '../assets/white_soundOff.png';
 // Game Objects
@@ -17,18 +17,48 @@ class playGame extends Phaser.Scene {
 		this.hzMS = (1 / 60) * 1000;
     }
     preload() {
-        this.load.image('background', backgroundImg);
+        this.load.image('cat_eyes', catEyesImg);
         this.load.image('demon_eye', demonEyeImg);
-        this.load.image('devil', devilImg);
+        this.load.image('flame_demon', flameDemonImg);
         this.load.image('sound_on', soundOnImg);
         this.load.image('sound_off', soundOffImg);
 
         this.load.audio('demon_theme', 'src/assets/sound/demon_lord.mp3');
     }
     create() {
-		this.background = this.add.tileSprite(0, 0, this.cameras.main.width * 2, this.cameras.main.height * 2, 'background');
+        this.make.tileSprite({
+            key: 'cat_eyes',
+            x: 0,
+            y: 0,
+            width: this.cameras.main.width * 4,
+            scale: { x: 0.5, y: 0.5 }
+        });
 
-        this.player = new Player({ world: this.matter.world, x: 400, y: 150, key: 'devil' });
+        this.make.tileSprite({
+            key: 'cat_eyes',
+            x: 0,
+            y: 600,
+            width: this.cameras.main.width * 4,
+            scale: { x: 0.5, y: 0.5 }
+        });
+
+        this.make.tileSprite({
+            key: 'cat_eyes',
+            x: 0,
+            y: 300,
+            width: this.cameras.main.width,
+            scale: { x: 0.5, y: 0.5 }
+        });
+
+        this.make.tileSprite({
+            key: 'cat_eyes',
+            x: 800,
+            y: 300,
+            width: this.cameras.main.width,
+            scale: { x: 0.5, y: 0.5 }
+        });
+
+        this.player = new Player({ world: this.matter.world, x: 400, y: 150, key: 'flame_demon' });
         this.enemy = new Enemy({ world: this.matter.world, x: 350, y: 50, key: 'demon_eye' });
         this.enemy.body.angle = Math.atan2(this.enemy.y - this.player.y, this.enemy.x - this.player.x);
 
@@ -51,10 +81,10 @@ class playGame extends Phaser.Scene {
         this.soundOn.on('pointerdown', this.onToggleSound, this);
         this.soundOff.on('pointerdown', this.onToggleSound, this);
 
-        Phaser.Display.Align.In.Center(this.player, this.add.zone(400, 300, 800, 600));        
+        Phaser.Display.Align.In.Center(this.player, this.add.zone(400, 300, 800, 600));     
 
         this.music = this.sound.add('demon_theme');
-	    this.music.play();
+	    // this.music.play();
     }
     update(time, delta) {
         this.accumMS += delta;
@@ -66,7 +96,10 @@ class playGame extends Phaser.Scene {
 
             this.enemy.x = -(0.05 * this.accumMS * Math.cos(this.enemy.angle + Math.PI / 2)) + this.enemy.x;
             this.enemy.y = -(0.05 * this.accumMS * Math.sin(this.enemy.angle + Math.PI / 2)) + this.enemy.y;
-
+            
+            if (this.isEnemyNear(this.enemy, this.player)) {
+                this.enemy.setAlpha();
+            }
 		}
 
 		while (this.accumMS >= this.hzMS) {
@@ -88,6 +121,10 @@ class playGame extends Phaser.Scene {
     moveForward(object) {
         object.x = 2 * Math.cos(angleOfAttack) + this.x;
         object.y = 2 * Math.sin(angleOfAttack) + this.y;
+    }
+    isEnemyNear(source, target) {
+        if (this.distanceTo(source, target) < 200) return true;
+        return false;
     }
 	distanceTo(source, target) {
 		let dx = source.x - target.x;

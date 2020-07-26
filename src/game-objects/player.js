@@ -5,6 +5,8 @@ export default class Player extends Phaser.Physics.Matter.Sprite {
 	    this.body.isStatic = true;
 		this.body.ignoreGravity = true;
 
+		this.setAlpha();
+
 		this.setPosition(config.x, config.y);
 
 	    this.scene.add.existing(this);
