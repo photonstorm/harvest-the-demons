@@ -31,7 +31,7 @@ class playGame extends Phaser.Scene {
             x: 0,
             y: 0,
             width: this.cameras.main.width * 4,
-            scale: { x: 0.5, y: 0.5 }
+            scale: { x: 0.5, y: 0.5 },
         });
 
         this.make.tileSprite({
@@ -39,7 +39,7 @@ class playGame extends Phaser.Scene {
             x: 0,
             y: 600,
             width: this.cameras.main.width * 4,
-            scale: { x: 0.5, y: 0.5 }
+            scale: { x: 0.5, y: 0.5 },
         });
 
         this.make.tileSprite({
@@ -47,7 +47,7 @@ class playGame extends Phaser.Scene {
             x: 0,
             y: 300,
             width: this.cameras.main.width,
-            scale: { x: 0.5, y: 0.5 }
+            scale: { x: 0.5, y: 0.5 },
         });
 
         this.make.tileSprite({
@@ -55,13 +55,12 @@ class playGame extends Phaser.Scene {
             x: 800,
             y: 300,
             width: this.cameras.main.width,
-            scale: { x: 0.5, y: 0.5 }
+            scale: { x: 0.5, y: 0.5 },
         });
 
         this.player = new Player({ world: this.matter.world, x: 400, y: 150, key: 'flame_demon' });
         this.enemy = new Enemy({ world: this.matter.world, x: 350, y: 50, key: 'demon_eye' });
         this.enemy.body.angle = Math.atan2(this.enemy.y - this.player.y, this.enemy.x - this.player.x);
-
 		this.soundOn = this.make.image({
 			key: 'sound_on',
 			x: 800,
@@ -77,6 +76,13 @@ class playGame extends Phaser.Scene {
 			scale: { x: 0.5, y: 0.5 },
             origin: { x: 1, y: 1 }
 		}).setInteractive();
+
+        this.matter.world.on('collisionstart', function (event, bodyA, bodyB) {
+            console.log(bodyA, bodyB);
+            bodyA.gameObject.setTint(0xff0000);
+            bodyB.gameObject.setTint(0x00ff00);
+    
+        });
 
         this.soundOn.on('pointerdown', this.onToggleSound, this);
         this.soundOff.on('pointerdown', this.onToggleSound, this);
