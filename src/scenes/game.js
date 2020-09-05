@@ -19,8 +19,8 @@ class playGame extends Phaser.Scene {
     init() {
 		this.accumMS = 0;
         this.hzMS = (1 / 60) * 1000;
-        this.position = 1;
-        this.step = 0.03;
+        this.position = 0.5;
+        this.step = 0.02;
     }
     preload() {
         this.load.image('cat_eyes', catEyesImg);
@@ -159,16 +159,14 @@ class playGame extends Phaser.Scene {
 
         this.input.keyboard.on('keydown_A', function (event) {
             this.position = (this.position - this.step < 0) ? 1 : this.position - this.step;
-            this.player.setAngle(90)
+            const rotation = Phaser.Math.DegToRad(this.position * 360 + 180);
+            this.player.rotation = rotation;
         }, this);
 
         this.input.keyboard.on('keydown_D', function (event) {
             this.position = (this.position + this.step > 1) ? 0 : this.position + this.step;
-            this.player.setAngle(90);
-            // 1 = 90
-            // 0.75 = 270
-            // 0.5 = 0
-            // 0.25 = 180
+            const rotation = Phaser.Math.DegToRad(this.position * 360 + 180);
+            this.player.rotation = rotation;
         }, this);
 
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -180,20 +178,15 @@ class playGame extends Phaser.Scene {
         this.accumMS += delta;
 		if (this.accumMS >= this.hzMS) {
             if (this.player.isAttacking() === false) {
-                const angle = Math.atan2(this.input.activePointer.worldY - this.skull.y, this.input.activePointer.worldX - this.skull.x) + Phaser.Math.DegToRad(90);
+                var { x, y } = this.circle.getPoint(this.position);
+                const { worldX, worldY } = this.input.activePointer;
 
-                const left = angle >= 90 && angle <= 270;
-                this.player.setFlipX(left);
-                // this.player.setAngle(angle);
+                const angle = Math.atan2(worldY - y, worldX - x) + Phaser.Math.DegToRad(90);
 
-                var p = this.circle.getPoint(this.position);
-                this.player.setPosition(p.x, p.y);
+                this.player.setPosition(x, y);
     
                 this.enemy.x = -(0.05 * this.accumMS * Math.cos(this.enemy.angle + Math.PI / 2)) + this.enemy.x;
                 this.enemy.y = -(0.05 * this.accumMS * Math.sin(this.enemy.angle + Math.PI / 2)) + this.enemy.y;
-
-                // this.player.x = this.input.activePointer.worldX;
-                // this.player.y = this.input.activePointer.worldY;
             }
 
             if (this.isEnemyNear(this.enemy, this.player)) {
