@@ -20,7 +20,8 @@ class playGame extends Phaser.Scene {
 		this.accumMS = 0;
         this.hzMS = (1 / 60) * 1000;
         this.position = 0.5;
-        this.step = 0.02;
+        this.step = 0.01;
+        this.afk = false;
     }
     preload() {
         this.load.image('cat_eyes', catEyesImg);
@@ -137,10 +138,12 @@ class playGame extends Phaser.Scene {
         }, this);
         
 		document.addEventListener("mouseout", e => {
-			this.player.anims.play('idle');
+            this.player.anims.play('idle');
+            this.afk = true;
 		});
 		document.addEventListener("mouseenter", e => {
-			this.player.anims.play('fly');
+            this.player.anims.play('fly');
+            this.afk = false;
 		});
 
         this.matter.world.on('collisionstart', function (event, bodyA, bodyB) {
@@ -177,17 +180,39 @@ class playGame extends Phaser.Scene {
     update(time, delta) {
         this.accumMS += delta;
 		if (this.accumMS >= this.hzMS) {
-            if (this.player.isAttacking() === false) {
+            if (!this.player.isAttacking() && !this.afk) {
                 var { x, y } = this.circle.getPoint(this.position);
                 const { worldX, worldY } = this.input.activePointer;
 
-                const angle = Math.atan2(worldY - y, worldX - x) + Phaser.Math.DegToRad(90);
+                const angle = Math.atan2(worldY - y, worldX - x) * Phaser.Math.DegToRad(90);
+                console.log(this.position, x);
+
+                //* Left
+                if (worldX < 400) {
+                    if (this.position >= .5 && this.position <= 1) {
+                        this.position = (this.position - this.step < 0) ? 1 : this.position - this.step;
+                    }
+                    else if (this.position >= 0 && this.position <= .5) {
+                        this.position = (this.position + this.step > 1) ? 0 : this.position + this.step;
+                    }
+                    
+                }
+                else if (worldX > 400) {
+                    if (this.position >= .50 && this.position <= 1) {
+                        this.position = (this.position + this.step > 1) ? 0 : this.position + this.step;
+                    }
+                    else if (this.position <= .50 && this.position >= 0) {
+                        this.position = (this.position - this.step < 0) ? 1 : this.position - this.step;
+                    }
+                }
+
+                const rotation = Phaser.Math.DegToRad(this.position * 360 + 180);
+                this.player.rotation = rotation;
 
                 this.player.setPosition(x, y);
-    
-                this.enemy.x = -(0.05 * this.accumMS * Math.cos(this.enemy.angle + Math.PI / 2)) + this.enemy.x;
-                this.enemy.y = -(0.05 * this.accumMS * Math.sin(this.enemy.angle + Math.PI / 2)) + this.enemy.y;
             }
+            this.enemy.x = -(0.05 * this.accumMS * Math.cos(this.enemy.angle + Math.PI / 2)) + this.enemy.x;
+            this.enemy.y = -(0.05 * this.accumMS * Math.sin(this.enemy.angle + Math.PI / 2)) + this.enemy.y;
 
             if (this.isEnemyNear(this.enemy, this.player)) {
                 this.enemy.setAlpha();
