@@ -168,21 +168,7 @@ class playGame extends Phaser.Scene {
                 this.player.rotation = DegToRad(newAngle + 180);
                 
                 const p = this.circle.getPoint(this.position);
-
-                this.tweens.add({
-                    targets: this.player,
-                    x: {
-                        from: x,
-                        to: p.x
-                    },
-                    y: {
-                        from: y,
-                        to: p.y
-                    },
-                    delay: 0,
-                    ease: 'Sine.easeInOut',
-                    duration: 10
-                });
+                this.player.setPosition(p.x, p.y);
                 this.player.setFlipY(this.position < .25 || this.position > .75);
             }
             this.enemy.x = -(0.05 * this.accumMS * Math.cos(this.enemy.angle + Math.PI / 2)) + this.enemy.x;
