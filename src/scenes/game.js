@@ -11,6 +11,8 @@ import ghostWarriorJSON from '../assets/spritesheets/ghost-warrior.json';
 // Game Objects
 import Player from '../game-objects/player';
 import Enemy from '../game-objects/enemy';
+import { RadToDeg, DegToRad }  from 'phaser/src/math/'; 
+import { Normalize, Wrap }  from 'phaser/src/math/angle/'; 
 
 class playGame extends Phaser.Scene {
     constructor () {
@@ -87,10 +89,10 @@ class playGame extends Phaser.Scene {
         }).setInteractive();
         Phaser.Display.Align.In.Center(this.skull, this.add.zone(400, 300, 800, 600));
 
+        this.circle = new Phaser.Curves.Path(500, 300).circleTo(100);
+
         var graphics = this.add.graphics();
         graphics.lineStyle(1, 0xffffff, 1);
-
-        this.circle = new Phaser.Curves.Path(500, 300).circleTo(100);
         this.circle.draw(graphics, 128);
         
         //* Ghost Warrior
@@ -137,11 +139,11 @@ class playGame extends Phaser.Scene {
 			}
         }, this);
         
-		document.addEventListener("mouseout", e => {
+		document.addEventListener("mouseout", () => {
             this.player.anims.play('idle');
             this.afk = true;
 		});
-		document.addEventListener("mouseenter", e => {
+		document.addEventListener("mouseenter", () => {
             this.player.anims.play('fly');
             this.afk = false;
 		});
@@ -151,65 +153,37 @@ class playGame extends Phaser.Scene {
             bodyA.gameObject.setTint(0xff0000);
             bodyB.gameObject.setTint(0x00ff00);
         });
-
-        this.input.keyboard.on('keydown_LEFT', function (event) {
-            this.position = (this.position - this.step < 0) ? 1 : this.position - this.step;
-        }, this);
-
-        this.input.keyboard.on('keydown_RIGHT', function (event) {
-            this.position = (this.position + this.step > 1) ? 0 : this.position + this.step;
-        }, this);
-
-        this.input.keyboard.on('keydown_A', function (event) {
-            this.position = (this.position - this.step < 0) ? 1 : this.position - this.step;
-            const rotation = Phaser.Math.DegToRad(this.position * 360 + 180);
-            this.player.rotation = rotation;
-        }, this);
-
-        this.input.keyboard.on('keydown_D', function (event) {
-            this.position = (this.position + this.step > 1) ? 0 : this.position + this.step;
-            const rotation = Phaser.Math.DegToRad(this.position * 360 + 180);
-            this.player.rotation = rotation;
-        }, this);
-
-        this.cursors = this.input.keyboard.createCursorKeys();
-
-        this.left = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
-        this.right = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
     }
     update(time, delta) {
         this.accumMS += delta;
 		if (this.accumMS >= this.hzMS) {
-            if (!this.player.isAttacking() && !this.afk) {
+            if (!this.player.isAttacking() && !this.afk && this.distanceTo(this.skull, this.input.activePointer) > 100) {
                 var { x, y } = this.circle.getPoint(this.position);
                 const { worldX, worldY } = this.input.activePointer;
 
-                const angle = Math.atan2(worldY - y, worldX - x) * Phaser.Math.DegToRad(90);
-                console.log(this.position, x);
+                const angle = Math.atan2(worldY - y, worldX - x);
+                const newAngle = Math.round(RadToDeg(Normalize(Wrap(angle))));
 
-                //* Left
-                if (worldX < 400) {
-                    if (this.position >= .5 && this.position <= 1) {
-                        this.position = (this.position - this.step < 0) ? 1 : this.position - this.step;
-                    }
-                    else if (this.position >= 0 && this.position <= .5) {
-                        this.position = (this.position + this.step > 1) ? 0 : this.position + this.step;
-                    }
-                    
-                }
-                else if (worldX > 400) {
-                    if (this.position >= .50 && this.position <= 1) {
-                        this.position = (this.position + this.step > 1) ? 0 : this.position + this.step;
-                    }
-                    else if (this.position <= .50 && this.position >= 0) {
-                        this.position = (this.position - this.step < 0) ? 1 : this.position - this.step;
-                    }
-                }
+                this.position = Math.round((newAngle / 360 + Number.EPSILON) * 100) / 100;
+                this.player.rotation = DegToRad(newAngle + 180);
+                
+                const p = this.circle.getPoint(this.position);
 
-                const rotation = Phaser.Math.DegToRad(this.position * 360 + 180);
-                this.player.rotation = rotation;
-
-                this.player.setPosition(x, y);
+                this.tweens.add({
+                    targets: this.player,
+                    x: {
+                        from: x,
+                        to: p.x
+                    },
+                    y: {
+                        from: y,
+                        to: p.y
+                    },
+                    delay: 0,
+                    ease: 'Sine.easeInOut',
+                    duration: 10
+                });
+                this.player.setFlipY(this.position < .25 || this.position > .75);
             }
             this.enemy.x = -(0.05 * this.accumMS * Math.cos(this.enemy.angle + Math.PI / 2)) + this.enemy.x;
             this.enemy.y = -(0.05 * this.accumMS * Math.sin(this.enemy.angle + Math.PI / 2)) + this.enemy.y;
