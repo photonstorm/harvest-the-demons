@@ -1,6 +1,6 @@
 export default class Player extends Phaser.Physics.Matter.Sprite {
 	constructor (config) {
-		super(config.world, config.x, config.y, config.key, null);
+		super(config.world, config.x, config.y, config.key, null, { shape: config.shape });
 
 		this.body.label = 'player';
 

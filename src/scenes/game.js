@@ -11,6 +11,8 @@ import ghostWarriorJSON from '../assets/spritesheets/ghost-warrior.json';
 // Game Objects
 import Player from '../game-objects/player';
 import Enemy from '../game-objects/enemy';
+//* Physics
+import ghostWarriorShape from '../assets/PhysicsEditor/ghost_warrior.json';
 import { RadToDeg, DegToRad, Between }  from 'phaser/src/math/'; 
 import { Normalize, Wrap }  from 'phaser/src/math/angle/'; 
 import { v4 as uuidv4 } from 'uuid';
@@ -50,8 +52,9 @@ class playGame extends Phaser.Scene {
         this.load.image('sound_off', soundOffImg);
         this.load.image('frozen_skull', frozenSkullImg);
 
+        this.load.json('ghost_warrior_shapes', ghostWarriorShape);
+
         this.load.atlas('ghost_warrior', ghostWarriorSpriteSheet, ghostWarriorJSON);
-        this.load.json('sensor', sensor);
 
         this.load.audio('demon_theme', 'src/assets/sound/demon_lord.mp3');
     }
@@ -80,8 +83,9 @@ class playGame extends Phaser.Scene {
         graphics.lineStyle(1, 0xffffff, 1);
         this.circle.draw(graphics, 128);
         
+        var shapes = this.cache.json.get('ghost_warrior_shapes');
         //* Ghost Warrior
-        this.player = new Player({ world: this.matter.world, x: 400, y: 150, key: 'ghost_warrior' });
+        this.player = new Player({ world: this.matter.world, x: 400, y: 150, key: 'ghost_warrior', shape: shapes.main_body });
         this.player.setAngle(this.position * 360);
         Phaser.Display.Align.In.Center(this.player, this.add.zone(400, 300, 800, 600));
         this.player.on('animationcomplete', this.animComplete, this);
@@ -116,7 +120,6 @@ class playGame extends Phaser.Scene {
         }, this);
 
         this.matter.world.on('collisionstart', function (event, bodyA, bodyB) {
-            console.log(bodyA);
             this.enemies[bodyB.label].tween.remove();
             this.enemies[bodyB.label].destroy();
         }, this);
@@ -141,7 +144,12 @@ class playGame extends Phaser.Scene {
                 
                 const p = this.circle.getPoint(this.position);
                 this.player.setPosition(p.x, p.y);
-                this.player.setFlipY(this.position < .25 || this.position > .75);
+
+                let isRight = this.position < .25 || this.position > .75;
+                this.player.setFlipY(isRight);
+            } else {
+                const p = this.circle.getPoint(this.position);
+                this.player.setPosition(p.x, p.y);    
             }
 		}
 		while (this.accumMS >= this.hzMS) {
