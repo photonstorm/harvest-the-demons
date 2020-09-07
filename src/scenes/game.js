@@ -51,6 +51,7 @@ class playGame extends Phaser.Scene {
         this.load.image('frozen_skull', frozenSkullImg);
 
         this.load.atlas('ghost_warrior', ghostWarriorSpriteSheet, ghostWarriorJSON);
+        this.load.json('sensor', sensor);
 
         this.load.audio('demon_theme', 'src/assets/sound/demon_lord.mp3');
     }
@@ -115,6 +116,7 @@ class playGame extends Phaser.Scene {
         }, this);
 
         this.matter.world.on('collisionstart', function (event, bodyA, bodyB) {
+            console.log(bodyA);
             this.enemies[bodyB.label].tween.remove();
             this.enemies[bodyB.label].destroy();
         }, this);
