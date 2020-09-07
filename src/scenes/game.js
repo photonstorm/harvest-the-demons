@@ -11,7 +11,7 @@ import ghostWarriorJSON from '../assets/spritesheets/ghost-warrior.json';
 // Game Objects
 import Player from '../game-objects/player';
 import Enemy from '../game-objects/enemy';
-import { RadToDeg, DegToRad }  from 'phaser/src/math/'; 
+import { RadToDeg, DegToRad, Between }  from 'phaser/src/math/'; 
 import { Normalize, Wrap }  from 'phaser/src/math/angle/'; 
 
 class playGame extends Phaser.Scene {
@@ -24,6 +24,22 @@ class playGame extends Phaser.Scene {
         this.position = 0.5;
         this.step = 0.01;
         this.afk = false;
+        this.level = 0;
+        this.levels = [
+            {
+                targets: 10,
+                minDelay: 2000,
+                maxDelay: 3000,
+                speed: 4000
+            },
+            {
+
+            },
+            {
+
+            },
+        ];
+        this.enemies = [];
     }
     preload() {
         this.load.image('cat_eyes', catEyesImg);
@@ -38,37 +54,10 @@ class playGame extends Phaser.Scene {
         this.load.audio('demon_theme', 'src/assets/sound/demon_lord.mp3');
     }
     create() {
-        this.make.tileSprite({
-            key: 'cat_eyes',
-            x: 0,
-            y: 0,
-            width: this.cameras.main.width * 4,
-            scale: { x: 0.5, y: 0.5 },
-        });
-
-        this.make.tileSprite({
-            key: 'cat_eyes',
-            x: 0,
-            y: 600,
-            width: this.cameras.main.width * 4,
-            scale: { x: 0.5, y: 0.5 },
-        });
-
-        this.make.tileSprite({
-            key: 'cat_eyes',
-            x: 0,
-            y: 300,
-            width: this.cameras.main.width,
-            scale: { x: 0.5, y: 0.5 },
-        });
-
-        this.make.tileSprite({
-            key: 'cat_eyes',
-            x: 800,
-            y: 300,
-            width: this.cameras.main.width,
-            scale: { x: 0.5, y: 0.5 },
-        });
+        this.make.tileSprite({ key: 'cat_eyes', x: 0, y: 0, width: this.cameras.main.width * 4, scale: { x: 0.5, y: 0.5 } });
+        this.make.tileSprite({ key: 'cat_eyes', x: 0, y: 600, width: this.cameras.main.width * 4, scale: { x: 0.5, y: 0.5 } });
+        this.make.tileSprite({ key: 'cat_eyes', x: 0, y: 300, width: this.cameras.main.width, scale: { x: 0.5, y: 0.5 }, });
+        this.make.tileSprite({ key: 'cat_eyes', x: 800, y: 300, width: this.cameras.main.width, scale: { x: 0.5, y: 0.5 } });
 
         this.input.mouse.disableContextMenu();
 
@@ -80,13 +69,7 @@ class playGame extends Phaser.Scene {
         this.createAnimation('death', 'ghost_warrior', 'death', 1, 8, '.png', false, 0);
         
         //* Ice Skull
-		this.skull = this.make.image({
-			key: 'frozen_skull',
-			x: 0,
-			y: 0,
-			scale: { x: 1, y: 1 },
-            origin: { x: 1, y: 1 }
-        }).setInteractive();
+		this.skull = this.make.image({ key: 'frozen_skull', x: 0, y: 0, scale: { x: 1, y: 1 }, origin: { x: 1, y: 1 } }).setInteractive();
         Phaser.Display.Align.In.Center(this.skull, this.add.zone(400, 300, 800, 600));
 
         this.circle = new Phaser.Curves.Path(500, 300).circleTo(100);
@@ -99,33 +82,12 @@ class playGame extends Phaser.Scene {
         this.player = new Player({ world: this.matter.world, x: 400, y: 150, key: 'ghost_warrior' });
         this.player.setAngle(this.position * 360);
         Phaser.Display.Align.In.Center(this.player, this.add.zone(400, 300, 800, 600));
-        this.player.anims.play('fly');
         this.player.on('animationcomplete', this.animComplete, this);
         Phaser.Display.Align.In.TopCenter(this.player, this.skull);
 
-        var p = this.circle.getPoint(this.position);
-        this.player.setPosition(p.x, p.y);
-
-        //* Eye Balls
-        this.enemy = new Enemy({ world: this.matter.world, x: 350, y: 50, key: 'demon_eye' });
-        this.enemy.body.angle = Math.atan2(this.enemy.y - this.player.y, this.enemy.x - this.player.x);
-        
         //* Sound Effects
-		this.soundOn = this.make.image({
-			key: 'sound_on',
-			x: 800,
-			y: 110,
-			scale: { x: 0.5, y: 0.5 },
-            origin: { x: 1, y: 1 }
-        }).setInteractive();
-        
-		this.soundOff = this.make.image({
-			key: 'sound_off',
-			x: 800,
-			y: 110,
-			scale: { x: 0.5, y: 0.5 },
-            origin: { x: 1, y: 1 }
-        }).setInteractive();
+		this.soundOn = this.make.image({ key: 'sound_on', x: 800, y: 110, scale: { x: 0.5, y: 0.5 }, origin: { x: 1, y: 1 }}).setInteractive();
+		this.soundOff = this.make.image({ key: 'sound_off', x: 800, y: 110, scale: { x: 0.5, y: 0.5 }, origin: { x: 1, y: 1 }}).setInteractive();
 
         this.soundOn.on('pointerdown', this.onToggleSound, this);
         this.soundOff.on('pointerdown', this.onToggleSound, this);  
@@ -149,10 +111,15 @@ class playGame extends Phaser.Scene {
 		});
 
         this.matter.world.on('collisionstart', function (event, bodyA, bodyB) {
-            console.log(bodyA, bodyB);
-            bodyA.gameObject.setTint(0xff0000);
-            bodyB.gameObject.setTint(0x00ff00);
-        });
+            bodyB.gameObject.setVisible(false);
+            this.player.anims.play('hit');
+        }.bind(this));
+
+        this.matter.world.on('collisionend', function (event, bodyA, bodyB) {
+            bodyB.gameObject.destroy();
+        }.bind(this));
+
+        this.initEnemies();
     }
     update(time, delta) {
         this.accumMS += delta;
@@ -171,17 +138,59 @@ class playGame extends Phaser.Scene {
                 this.player.setPosition(p.x, p.y);
                 this.player.setFlipY(this.position < .25 || this.position > .75);
             }
-            this.enemy.x = -(0.05 * this.accumMS * Math.cos(this.enemy.angle + Math.PI / 2)) + this.enemy.x;
-            this.enemy.y = -(0.05 * this.accumMS * Math.sin(this.enemy.angle + Math.PI / 2)) + this.enemy.y;
-
-            if (this.isEnemyNear(this.enemy, this.player)) {
-                this.enemy.setAlpha();
-            }
 		}
-
 		while (this.accumMS >= this.hzMS) {
 			this.accumMS -= this.hzMS;
 		}
+    }
+    initEnemies() {
+        var delay = 0;
+        const { minDelay, maxDelay, speed } = this.levels[this.level];
+        for (let i = 0; i < this.levels[this.level].targets; i++) {
+            let side = Math.floor(Math.random() * 4 + 1);
+            const { x, y } = this.getRandomCoordinates(side);
+
+            this.enemy = new Enemy({ world: this.matter.world, x, y, key: 'demon_eye' });
+            this.enemy.body.angle = Math.atan2(y - this.player.y, x - this.player.x);
+            delay += Between(minDelay, maxDelay);
+
+            this.tweens.add({
+                targets: this.enemy,
+                visible: {
+                    from: true,
+                },
+                x: {
+                    from: x,
+                    to: this.skull.x,
+                },
+                y: {
+                    from: y,
+                    to: this.skull.y,
+                },
+                alpha: {
+                    start: 0,
+                    from: 0,
+                    to: 1,
+                },
+                delay,
+                duration: speed,
+            });
+        }
+    }
+    getRandomCoordinates(position) {
+        if (position === 1) {
+            return { x: Between(0, 800), y: 0 };
+        }
+        else if (position === 2) {
+            return { x: 0, y: Between(0, 600) };
+        }
+        else if (position === 3) {
+            return { x: Between(0, 800), y: 600 };
+        }
+        else if (position === 4) {
+            return { x: 0, y: Between(0, 600) };
+        }
+        return { x: Between(0, 800), y: 0 };
     }
     createAnimation (key, name, prefix, start, end, suffix, yoyo, repeat) {
 		this.anims.create({
@@ -195,8 +204,8 @@ class playGame extends Phaser.Scene {
     animComplete(animation, frame) {
         this.player.anims.play('fly');
     }
-    onToggleSound(pointer, x, y, event) {
-        event.stopPropagation();
+    onToggleSound(pointer, x, y, e) {
+        e.stopPropagation();
         if (this.soundOn.active) {
             this.soundOn.setActive(false).setVisible(false);
             this.soundOff.setActive(true).setVisible(true);
@@ -207,10 +216,6 @@ class playGame extends Phaser.Scene {
             this.soundOn.setActive(true).setVisible(true);
             this.music.play();
         }
-    }
-    moveForward(object) {
-        object.x = 2 * Math.cos(angleOfAttack) + this.x;
-        object.y = 2 * Math.sin(angleOfAttack) + this.y;
     }
     isEnemyNear(source, target) {
         if (this.distanceTo(source, target) < 200) return true;
