@@ -2,6 +2,8 @@ export default class Player extends Phaser.Physics.Matter.Sprite {
 	constructor (config) {
 		super(config.world, config.x, config.y, config.key);
 
+		this.body.label = 'player';
+
 		this.body.ignoreGravity = true;
 		this.body.immovable = true;
 		this.setMass(1000);

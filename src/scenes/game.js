@@ -13,6 +13,7 @@ import Player from '../game-objects/player';
 import Enemy from '../game-objects/enemy';
 import { RadToDeg, DegToRad, Between }  from 'phaser/src/math/'; 
 import { Normalize, Wrap }  from 'phaser/src/math/angle/'; 
+import { v4 as uuidv4 } from 'uuid';
 
 class playGame extends Phaser.Scene {
     constructor () {
@@ -28,8 +29,8 @@ class playGame extends Phaser.Scene {
         this.levels = [
             {
                 targets: 10,
-                minDelay: 2000,
-                maxDelay: 3000,
+                minDelay: 1000,
+                maxDelay: 2000,
                 speed: 4000
             },
             {
@@ -39,7 +40,7 @@ class playGame extends Phaser.Scene {
 
             },
         ];
-        this.enemies = [];
+        this.enemies = {};
     }
     preload() {
         this.load.image('cat_eyes', catEyesImg);
@@ -108,16 +109,18 @@ class playGame extends Phaser.Scene {
 		document.addEventListener("mouseenter", () => {
             this.player.anims.play('fly');
             this.afk = false;
-		});
+        });
+        
+        this.matter.world.on('collisionactive', function (event, bodyA, bodyB) {
+        }, this);
 
         this.matter.world.on('collisionstart', function (event, bodyA, bodyB) {
-            bodyB.gameObject.setVisible(false);
-            this.player.anims.play('hit');
-        }.bind(this));
+            this.enemies[bodyB.label].tween.remove();
+            this.enemies[bodyB.label].destroy();
+        }, this);
 
         this.matter.world.on('collisionend', function (event, bodyA, bodyB) {
-            bodyB.gameObject.destroy();
-        }.bind(this));
+        }, this);
 
         this.initEnemies();
     }
@@ -145,17 +148,18 @@ class playGame extends Phaser.Scene {
     }
     initEnemies() {
         var delay = 0;
-        const { minDelay, maxDelay, speed } = this.levels[this.level];
-        for (let i = 0; i < this.levels[this.level].targets; i++) {
+        const { minDelay, maxDelay, speed, targets } = this.levels[this.level];
+        for (let i = 0; i < targets; i++) {
             let side = Math.floor(Math.random() * 4 + 1);
             const { x, y } = this.getRandomCoordinates(side);
 
-            this.enemy = new Enemy({ world: this.matter.world, x, y, key: 'demon_eye' });
-            this.enemy.body.angle = Math.atan2(y - this.player.y, x - this.player.x);
+            const key = uuidv4();
+            this.enemies[key] = new Enemy({ world: this.matter.world, x, y, key: 'demon_eye', label: key });
+            this.enemies[key].body.angle = Math.atan2(y - this.player.y, x - this.player.x);
             delay += Between(minDelay, maxDelay);
 
-            this.tweens.add({
-                targets: this.enemy,
+            this.enemies[key].tween = this.tweens.add({
+                targets: this.enemies[key],
                 visible: {
                     from: true,
                 },

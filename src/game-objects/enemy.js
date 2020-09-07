@@ -4,6 +4,8 @@ export default class Enemy extends Phaser.Physics.Matter.Sprite {
 
 		this.setScale(0.05, 0.05);
 
+		this.body.label = config.label;
+
 		this.body.isStatic = true;
 		this.body.ignoreGravity = true;
 		this.setSensor(true);
