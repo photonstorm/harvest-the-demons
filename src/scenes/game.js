@@ -145,8 +145,12 @@ class playGame extends Phaser.Scene {
                 const p = this.circle.getPoint(this.position);
                 this.player.setPosition(p.x, p.y);
 
-                let isRight = this.position < .25 || this.position > .75;
-                this.player.setFlipY(isRight);
+                const isRight = this.position < .25 || this.position > .75;
+                if (isRight) {
+                    this.player.setScale(0.5, -0.5);
+                } else {
+                    this.player.setScale(0.5, 0.5);
+                }
             } else {
                 const p = this.circle.getPoint(this.position);
                 this.player.setPosition(p.x, p.y);    
