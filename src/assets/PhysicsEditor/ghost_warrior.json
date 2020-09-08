@@ -1,0 +1,50 @@
+{
+	"generator_info": "Shape definitions generated with PhysicsEditor. Visit https://www.codeandweb.com/physicseditor",
+	"main_body": {
+		"type": "fromPhysicsEditor",
+		"label": "ghost-warrior-body",
+		"isStatic": false,
+		"density": 0,
+		"restitution": 0,
+		"friction": 0,
+		"frictionAir": 0,
+		"frictionStatic": 0,
+		"collisionFilter": {
+			"group": 0,
+			"category": 1,
+			"mask": 255
+		},
+		"fixtures": [
+			{
+				"label": "",
+				"isSensor": true,
+				"ignoreGravity": true,
+				"circle": {
+					"x": 118.26086956521743,
+					"y": 175.26086956521738,
+					"radius": 11.312705940224058
+				}
+			},
+			{
+				"label": "",
+				"isSensor": false,
+				"ignoreGravity": true,
+				"circle": {
+					"x": 117.82608695652178,
+					"y": 200.91304347826087,
+					"radius": 18.715863695679015
+				}
+			},
+			{
+				"label": "",
+				"isSensor": false,
+				"ignoreGravity": true,
+				"circle": {
+					"x": 138.26086956521743,
+					"y": 244.39130434782612,
+					"radius": 20
+				}
+			}
+		]
+	}
+}
