@@ -16,9 +16,8 @@
 		},
 		"fixtures": [
 			{
-				"label": "",
+				"label": "body",
 				"isSensor": true,
-				"ignoreGravity": true,
 				"circle": {
 					"x": 118.26086956521743,
 					"y": 175.26086956521738,
@@ -26,24 +25,29 @@
 				}
 			},
 			{
-				"label": "",
-				"isSensor": false,
-				"ignoreGravity": true,
+				"label": "body",
+				"isSensor": true,
 				"circle": {
-					"x": 117.82608695652178,
+					"x": 119.64426877470359,
 					"y": 200.91304347826087,
 					"radius": 18.715863695679015
 				}
 			},
 			{
-				"label": "",
-				"isSensor": false,
-				"ignoreGravity": true,
+				"label": "body",
+				"isSensor": true,
 				"circle": {
 					"x": 138.26086956521743,
 					"y": 244.39130434782612,
 					"radius": 20
 				}
+			},
+			{
+				"label": "",
+				"isSensor": false,
+				"vertices": [
+					[ { "x":148, "y":220 }, { "x":34, "y":216 }, { "x":42, "y":235 } ]
+				]
 			}
 		]
 	}

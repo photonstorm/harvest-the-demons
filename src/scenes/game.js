@@ -120,6 +120,7 @@ class playGame extends Phaser.Scene {
         }, this);
 
         this.matter.world.on('collisionstart', function (event, bodyA, bodyB) {
+            console.log(bodyA.label, bodyB.label);
             this.enemies[bodyB.label].tween.remove();
             this.enemies[bodyB.label].destroy();
         }, this);
