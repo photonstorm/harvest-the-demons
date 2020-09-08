@@ -133,25 +133,21 @@ class playGame extends Phaser.Scene {
     update(time, delta) {
         this.accumMS += delta;
 		if (this.accumMS >= this.hzMS) {
-            if (!this.player.isAttacking() && !this.afk && this.distanceTo(this.skull, this.input.activePointer) > 100) {
+            if (!this.player.isAttacking() && !this.afk && this.distanceTo(this.player, this.input.activePointer) > 50) {
                 var { x, y } = this.circle.getPoint(this.position);
                 const { worldX, worldY } = this.input.activePointer;
 
                 const angle = Math.atan2(worldY - y, worldX - x);
                 const newAngle = Math.round(RadToDeg(Normalize(Wrap(angle))));
 
-                this.position = Math.round((newAngle / 360 + Number.EPSILON) * 100) / 100;
+                this.position = newAngle / 360;
                 this.player.rotation = DegToRad(newAngle + 180);
                 
                 const p = this.circle.getPoint(this.position);
                 this.player.setPosition(p.x, p.y);
 
                 const isRight = this.position < .25 || this.position > .75;
-                if (isRight) {
-                    this.player.setScale(0.5, -0.5);
-                } else {
-                    this.player.setScale(0.5, 0.5);
-                }
+                this.player.setScale(0.5, isRight ? -0.5 : 0.5);
             } else {
                 const p = this.circle.getPoint(this.position);
                 this.player.setPosition(p.x, p.y);    
