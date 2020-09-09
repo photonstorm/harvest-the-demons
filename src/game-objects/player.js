@@ -1,3 +1,5 @@
+import { assetsDPR } from "../index";
+
 export default class Player extends Phaser.Physics.Matter.Sprite {
 	constructor (config) {
 		super(config.world, config.x, config.y, config.key, null, { shape: config.shape });
@@ -9,7 +11,7 @@ export default class Player extends Phaser.Physics.Matter.Sprite {
 		this.setMass(1000);
 
 		this.setAlpha();
-		this.setScale(0.5);
+		this.setScale(0.5 * assetsDPR);
 
 		this.anims.play('fly');
 

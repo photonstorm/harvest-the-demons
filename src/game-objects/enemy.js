@@ -1,8 +1,10 @@
+import { assetsDPR } from "..";
+
 export default class Enemy extends Phaser.Physics.Matter.Sprite {
 	constructor (config) {
         super(config.world, config.x, config.y, config.key);
 
-		this.setScale(0.05, 0.05);
+		this.setScale(1 / assetsDPR, 1 / assetsDPR);
 
 		this.body.label = config.label;
 
