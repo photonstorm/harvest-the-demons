@@ -13,7 +13,7 @@ import Player from '../game-objects/player';
 import Enemy from '../game-objects/enemy';
 //* Physics
 import ghostWarriorShape from '../assets/PhysicsEditor/ghost_warrior.json';
-import { RadToDeg, DegToRad, Between }  from 'phaser/src/math/'; 
+import { RoundTo, RadToDeg, DegToRad, Between }  from 'phaser/src/math/'; 
 import { Normalize, Wrap }  from 'phaser/src/math/angle/'; 
 import { v4 as uuidv4 } from 'uuid';
 
@@ -133,24 +133,18 @@ class playGame extends Phaser.Scene {
     update(time, delta) {
         this.accumMS += delta;
 		if (this.accumMS >= this.hzMS) {
-            if (!this.player.isAttacking() && !this.afk && this.distanceTo(this.player, this.input.activePointer) > 50) {
+            if (!this.player.isAttacking() && !this.afk && this.distanceTo(this.player, this.input.activePointer) > 115) {
                 var { x, y } = this.circle.getPoint(this.position);
                 const { worldX, worldY } = this.input.activePointer;
 
                 const angle = Math.atan2(worldY - y, worldX - x);
-                const newAngle = Math.round(RadToDeg(Normalize(Wrap(angle))));
+                const newAngle = RoundTo(RadToDeg(Normalize(Wrap(angle))), -2);
 
-                this.position = newAngle / 360;
+                this.position = RoundTo(newAngle / 360, -2);
                 this.player.rotation = DegToRad(newAngle + 180);
                 
                 const p = this.circle.getPoint(this.position);
                 this.player.setPosition(p.x, p.y);
-
-                const isRight = this.position < .25 || this.position > .75;
-                this.player.setScale(0.5, isRight ? -0.5 : 0.5);
-            } else {
-                const p = this.circle.getPoint(this.position);
-                this.player.setPosition(p.x, p.y);    
             }
 		}
 		while (this.accumMS >= this.hzMS) {
