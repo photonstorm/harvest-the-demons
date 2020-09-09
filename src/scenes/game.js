@@ -208,14 +208,14 @@ class playGame extends Phaser.Scene {
       this
     );
 
-    // document.addEventListener("mouseout", () => {
-    //   this.player.anims.play("idle");
-    //   this.afk = true;
-    // });
-    // document.addEventListener("mouseenter", () => {
-    //   this.player.anims.play("fly");
-    //   this.afk = false;
-    // });
+    document.addEventListener("mouseout", () => {
+      this.player.anims.play("idle");
+      this.afk = true;
+    });
+    document.addEventListener("mouseenter", () => {
+      this.player.anims.play("fly");
+      this.afk = false;
+    });
 
     this.matter.world.on(
       "collisionactive",
