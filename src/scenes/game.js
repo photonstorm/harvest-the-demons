@@ -13,7 +13,7 @@ import Player from "../game-objects/player";
 import Enemy from "../game-objects/enemy";
 //* Physics
 import ghostWarriorShape from "../assets/PhysicsEditor/ghost_warrior.json";
-import { RoundTo, RadToDeg, DegToRad, Between } from "phaser/src/math/";
+import { RadToDeg, DegToRad, Between } from "phaser/src/math/";
 import { Normalize, Wrap } from "phaser/src/math/angle/";
 import { v4 as uuidv4 } from "uuid";
 import { assetsDPR } from "..";
@@ -31,9 +31,8 @@ class playGame extends Phaser.Scene {
     this.afk = false;
     this.level = 0;
     this.score = 0;
-    this.best = localStorage.getItem("best_score")
-      ? parseInt(localStorage.getItem("best_score"), 10)
-      : 0;
+    this.maxDistance = this.game.config.height / 4;
+    this.best = localStorage.getItem("best_score") ? parseInt(localStorage.getItem("best_score"), 10) : 0;
     this.levels = [
       {
         targets: 10,
@@ -102,38 +101,10 @@ class playGame extends Phaser.Scene {
 
     //* Create the animations
     this.createAnimation("fly", "ghost_warrior", "fly", 1, 5, ".png", true, -1);
-    this.createAnimation(
-      "attack",
-      "ghost_warrior",
-      "Attack",
-      1,
-      11,
-      ".png",
-      false,
-      0
-    );
-    this.createAnimation(
-      "idle",
-      "ghost_warrior",
-      "idle",
-      1,
-      5,
-      ".png",
-      true,
-      -1
-    );
-
+    this.createAnimation("attack", "ghost_warrior", "Attack", 1, 11, ".png", false, 0);
+    this.createAnimation("idle", "ghost_warrior", "idle", 1, 5, ".png", true, -1);
     this.createAnimation("hit", "ghost_warrior", "hit", 1, 6, ".png", false, 0);
-    this.createAnimation(
-      "death",
-      "ghost_warrior",
-      "death",
-      1,
-      8,
-      ".png",
-      false,
-      0
-    );
+    this.createAnimation("death", "ghost_warrior", "death", 1, 8, ".png", false, 0);
 
     //* Ice Skull
     this.skull = this.add
@@ -143,10 +114,7 @@ class playGame extends Phaser.Scene {
 
     alignGrid.center(this.skull);
 
-    this.circle = new Phaser.Curves.Path(
-      this.game.config.width / 2 + assetsDPR * 100,
-      this.game.config.height / 2
-    ).circleTo(100 * assetsDPR);
+    this.circle = new Phaser.Curves.Path(this.game.config.width / 2 + assetsDPR * 50, this.game.config.height / 2).circleTo(50 * assetsDPR);
 
     var graphics = this.add.graphics();
     graphics.lineStyle(1, 0xffffff, 1);
@@ -154,45 +122,30 @@ class playGame extends Phaser.Scene {
 
     //* Ghost Warrior
     var shapes = this.cache.json.get("ghost_warrior_shapes");
-    this.player = new Player({
-      world: this.matter.world,
-      x: 400,
-      y: 150,
-      key: "ghost_warrior",
-      shape: shapes.main_body,
-    });
+    this.player = new Player({ world: this.matter.world, x: 400, y: 150, key: "ghost_warrior", shape: shapes.main_body, });
     this.player.setAngle(this.position * 360);
-    Phaser.Display.Align.In.Center(
-      this.player,
-      this.add.zone(400, 300, 800, 600)
-    );
+    Phaser.Display.Align.In.Center(this.player, this.add.zone(400, 300, 800, 600));
     this.player.on("animationcomplete", this.animComplete, this);
     Phaser.Display.Align.In.TopCenter(this.player, this.skull);
 
-    this.scoreText = this.add
-      .text(0, 0, `${this.score}`, { fontSize: 16 * assetsDPR })
-      .setOrigin(0.5, 0.5);
+    this.scoreText = this.add.text(0, 0, `${this.score}`, { fontSize: 16 * assetsDPR }).setOrigin(0.5, 0.5);
     alignGrid.placeAtIndex(0, this.scoreText);
 
     //* Sound Effects
-    this.soundOn = this.make
-      .image({
-        key: "sound_on",
-        x: 800,
-        y: 110,
-        scale: { x: 0.5, y: 0.5 },
-        origin: { x: 1, y: 1 },
-      })
-      .setInteractive();
-    this.soundOff = this.make
-      .image({
-        key: "sound_off",
-        x: 800,
-        y: 110,
-        scale: { x: 0.5, y: 0.5 },
-        origin: { x: 1, y: 1 },
-      })
-      .setInteractive();
+    this.soundOn = this.make.image({
+      key: "sound_on",
+      x: 800,
+      y: 110,
+      scale: { x: 0.5, y: 0.5 },
+      origin: { x: 1, y: 1 },
+      }).setInteractive();
+    this.soundOff = this.make.image({
+      key: "sound_off",
+      x: 800,
+      y: 110,
+      scale: { x: 0.5, y: 0.5 },
+      origin: { x: 1, y: 1 },
+    }).setInteractive();
 
     this.soundOn.on("pointerdown", this.onToggleSound, this);
     this.soundOff.on("pointerdown", this.onToggleSound, this);
@@ -200,15 +153,11 @@ class playGame extends Phaser.Scene {
     this.music = this.sound.add("demon_theme");
     this.music.play();
 
-    this.input.on(
-      "pointerdown",
-      function (pointer) {
-        if (pointer.leftButtonDown() && !this.player.isAttacking()) {
-          this.player.anims.play("attack");
-        }
-      },
-      this
-    );
+    this.input.on("pointerdown", function (pointer) {
+      if (pointer.leftButtonDown() && !this.player.isAttacking()) {
+        this.player.anims.play("attack");
+      }
+      }, this);
 
     document.addEventListener("mouseout", () => {
       this.player.anims.play("idle");
@@ -219,29 +168,18 @@ class playGame extends Phaser.Scene {
       this.afk = false;
     });
 
-    this.matter.world.on(
-      "collisionactive",
-      function (event, bodyA, bodyB) {},
-      this
-    );
+    this.matter.world.on("collisionactive", function (event, bodyA, bodyB) {
+    }, this);
 
-    this.matter.world.on(
-      "collisionstart",
-      function (event, bodyA, bodyB) {
-        console.log(bodyA.label, bodyB.label);
+    this.matter.world.on("collisionstart", function (event, bodyA, bodyB) {
         this.enemies[bodyB.label].tween.remove();
         this.enemies[bodyB.label].destroy();
         this.score++;
         this.scoreText.setText(`${this.score}`);
-      },
-      this
-    );
+      }, this);
 
-    this.matter.world.on(
-      "collisionend",
-      function (event, bodyA, bodyB) {},
-      this
-    );
+    this.matter.world.on("collisionend", function (event, bodyA, bodyB) {
+    }, this);
 
     this.initEnemies();
 
@@ -253,25 +191,22 @@ class playGame extends Phaser.Scene {
       }
 
       this.scene.start("scoreScene", { score: this.score, best: this.best });
-    }, 10000);
+    }, 100000);
 
     this.cameras.main.fadeIn(500);
   }
   update(time, delta) {
     this.accumMS += delta;
     if (this.accumMS >= this.hzMS) {
-      if (
-        !this.player.isAttacking() &&
-        !this.afk &&
-        this.distanceTo(this.player, this.input.activePointer) > 115
-      ) {
+      const distance = this.distanceTo(this.player, this.input.activePointer);
+      if (!this.player.isAttacking() && !this.afk && distance > this.maxDistance) {
         var { x, y } = this.circle.getPoint(this.position);
-        const { worldX, worldY } = this.input.activePointer;
+        let { worldX, worldY } = this.input.activePointer;
 
         const angle = Math.atan2(worldY - y, worldX - x);
-        const newAngle = RoundTo(RadToDeg(Normalize(Wrap(angle))), -2);
+        const newAngle = RadToDeg(Normalize(Wrap(angle)));
 
-        this.position = RoundTo(newAngle / 360, -2);
+        this.position = newAngle / 360;
         this.player.rotation = DegToRad(newAngle + 180);
 
         const p = this.circle.getPoint(this.position);
@@ -290,17 +225,8 @@ class playGame extends Phaser.Scene {
       const { x, y } = this.getRandomCoordinates(side);
 
       const key = uuidv4();
-      this.enemies[key] = new Enemy({
-        world: this.matter.world,
-        x,
-        y,
-        key: "demon_eye",
-        label: key,
-      });
-      this.enemies[key].body.angle = Math.atan2(
-        y - this.player.y,
-        x - this.player.x
-      );
+      this.enemies[key] = new Enemy({ world: this.matter.world, x, y, key: "demon_eye", label: key });
+      this.enemies[key].body.angle = Math.atan2(y - this.player.y, x - this.player.x);
       delay += Between(minDelay, maxDelay);
 
       this.enemies[key].tween = this.tweens.add({
