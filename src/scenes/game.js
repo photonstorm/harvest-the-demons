@@ -1,11 +1,12 @@
 // Images
-import catEyesImg from "../assets/cateyesbg.png";
+import backgroundImg from "../assets/background.jpg";
 import demonEyeImg from "../assets/demon-eye.png";
-import flameDemonImg from "../assets/Flame_Demon_ Evolved.png";
 import soundOnImg from "../assets/white_soundOn.png";
 import soundOffImg from "../assets/white_soundOff.png";
-import frozenSkullImg from "../assets/frozen_skull2.png";
+import skullImg from "../assets/skull.png";
 //* Spritesheets
+import eyeballsSpriteSheet from "../assets/spritesheets/eyeballs.png";
+import eyeballsJSON from "../assets/spritesheets/eyeballs.json";
 import ghostWarriorSpriteSheet from "../assets/spritesheets/ghost-warrior.png";
 import ghostWarriorJSON from "../assets/spritesheets/ghost-warrior.json";
 // Game Objects
@@ -47,16 +48,16 @@ class playGame extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("cat_eyes", catEyesImg);
+    this.load.image("background", backgroundImg);
     this.load.image("demon_eye", demonEyeImg);
-    this.load.image("flame_demon", flameDemonImg);
     this.load.image("sound_on", soundOnImg);
     this.load.image("sound_off", soundOffImg);
-    this.load.image("frozen_skull", frozenSkullImg);
+    this.load.image("skull", skullImg);
 
     this.load.json("ghost_warrior_shapes", ghostWarriorShape);
 
     this.load.atlas("ghost_warrior", ghostWarriorSpriteSheet, ghostWarriorJSON);
+    this.load.atlas("eyeballs", eyeballsSpriteSheet, eyeballsJSON);
 
     this.load.audio("demon_theme", "src/assets/sound/demon_lord.mp3");
 
@@ -65,39 +66,6 @@ class playGame extends Phaser.Scene {
     // alignGrid.showNumbers();
   }
   create() {
-    this.make.tileSprite({
-      key: "cat_eyes",
-      x: 0,
-      y: 0,
-      width: this.cameras.main.width * assetsDPR * 4,
-      scale: { x: 0.5, y: 0.5 },
-    });
-
-    this.make.tileSprite({
-      key: "cat_eyes",
-      x: 0,
-      y: 600 * assetsDPR,
-      width: this.cameras.main.width * assetsDPR * 4,
-      scale: { x: 0.5, y: 0.5 },
-    });
-
-    this.make.tileSprite({
-      key: "cat_eyes",
-      x: 0,
-      y: 300 * assetsDPR,
-      width: this.cameras.main.width * assetsDPR,
-      scale: { x: 0.5, y: 0.5 },
-    });
-
-    this.make.tileSprite({
-      key: "cat_eyes",
-      x: 800 * assetsDPR,
-      y: 300 * assetsDPR,
-      width: this.cameras.main.width * assetsDPR,
-      scale: { x: 0.5, y: 0.5 },
-    });
-
-    this.input.mouse.disableContextMenu();
 
     //* Create the animations
     this.createAnimation("fly", "ghost_warrior", "fly", 1, 5, ".png", true, -1);
@@ -105,11 +73,68 @@ class playGame extends Phaser.Scene {
     this.createAnimation("idle", "ghost_warrior", "idle", 1, 5, ".png", true, -1);
     this.createAnimation("hit", "ghost_warrior", "hit", 1, 6, ".png", false, 0);
     this.createAnimation("death", "ghost_warrior", "death", 1, 8, ".png", false, 0);
+    this.createAnimation("eye_twitch", "eyeballs", "eyeball", 1, 5, ".png", false, -1);
 
+    this.make.image({
+      key: "background",
+      x: 0,
+      y: 0,
+      width: this.cameras.main.width * assetsDPR * 4,
+      origin: { x: 0, y: 0 },
+      scale: { x: 1.5, y: 1.5 },
+    });
+
+    //* Top
+    this.make.sprite({
+      key: "eyeballs",
+      x: 0,
+      y: 0,
+      flipY: true,
+      width: this.cameras.main.width * assetsDPR,
+      origin: { x: 0, y: 0 },
+      scale: { x: 2, y: 1.5 },
+    }).play('eye_twitch');
+
+    //* Right
+    this.make.sprite({
+      key: "eyeballs",
+      x: this.cameras.main.width - this.cache.json.get("eyeballs").textures[0].size.h / 2,
+      y: 0,
+      flipX: true,
+      height: this.cameras.main.height * assetsDPR,
+      rotation: -Math.PI / 2,
+      origin: { x: 1, y: 0 },
+      scale: { x: 3, y: 2 },
+    }).play('eye_twitch');
+
+    //* Bottom
+    this.make.sprite({
+      key: "eyeballs",
+      x: 0,
+      y: this.cameras.main.height,
+      width: this.cameras.main.width * assetsDPR,
+      origin: { x: 0, y: 1 },
+      scale: { x: 2, y: 1.5 },
+    }).play('eye_twitch');
+
+    //* Left
+    this.make.sprite({
+      key: "eyeballs",
+      x: this.cache.json.get("eyeballs").textures[0].size.h / 2,
+      y: 0,
+      flipX: true,
+      height: this.cameras.main.height * assetsDPR,
+      rotation: Math.PI / 2,
+      origin: { x: 0, y: 0 },
+      scale: { x: 3, y: 2 },
+    }).play('eye_twitch');
+
+    this.input.mouse.disableContextMenu();
+    
     //* Ice Skull
     this.skull = this.add
-      .image(0, 0, "frozen_skull")
-      .setScale(assetsDPR, assetsDPR)
+      .image(0, 0, "skull")
+      .setScale(assetsDPR / 10, assetsDPR / 10)
       .setInteractive();
 
     alignGrid.center(this.skull);
@@ -134,15 +159,16 @@ class playGame extends Phaser.Scene {
     //* Sound Effects
     this.soundOn = this.make.image({
       key: "sound_on",
-      x: 800,
-      y: 110,
+      x: this.game.config.width,
+      y: 100,
       scale: { x: 0.5, y: 0.5 },
       origin: { x: 1, y: 1 },
-      }).setInteractive();
+    }).setInteractive();
+      
     this.soundOff = this.make.image({
       key: "sound_off",
-      x: 800,
-      y: 110,
+      x: this.game.config.width,
+      y: 100,
       scale: { x: 0.5, y: 0.5 },
       origin: { x: 1, y: 1 },
     }).setInteractive();

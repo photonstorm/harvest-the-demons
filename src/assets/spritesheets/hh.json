@@ -1,0 +1,52 @@
+{"frames": [
+
+{
+	"filename": "eyeball1.png",
+	"frame": {"x":0,"y":0,"w":1022,"h":70},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1022,"h":70},
+	"sourceSize": {"w":1022,"h":70}
+},
+{
+	"filename": "eyeball2.png",
+	"frame": {"x":0,"y":70,"w":1022,"h":70},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1022,"h":70},
+	"sourceSize": {"w":1022,"h":70}
+},
+{
+	"filename": "eyeball3.png",
+	"frame": {"x":0,"y":140,"w":1022,"h":70},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1022,"h":70},
+	"sourceSize": {"w":1022,"h":70}
+},
+{
+	"filename": "eyeball4.png",
+	"frame": {"x":0,"y":210,"w":1022,"h":70},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1022,"h":70},
+	"sourceSize": {"w":1022,"h":70}
+},
+{
+	"filename": "eyeball5.png",
+	"frame": {"x":0,"y":280,"w":1022,"h":70},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1022,"h":70},
+	"sourceSize": {"w":1022,"h":70}
+}],
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "eyeballs.png",
+	"format": "RGBA8888",
+	"size": {"w":1022,"h":350},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:79ade8d9fcd5a87c68bc9c7541b335bd:b6b07b59ba757a24ffabd5ee30724e6e:adf2017a0705fed6fb83201b0f962aa5$"
+}
+}
