@@ -1,9 +1,9 @@
 // Images
-import backgroundImg from "../assets/background.jpg";
-import demonEyeImg from "../assets/demon-eye.png";
-import soundOnImg from "../assets/white_soundOn.png";
-import soundOffImg from "../assets/white_soundOff.png";
-import skullImg from "../assets/skull.png";
+import backgroundImg from "../assets/images/background.jpg";
+import demonEyeImg from "../assets/images/demon-eye.png";
+import soundOnImg from "../assets/images/white_soundOn.png";
+import soundOffImg from "../assets/images/white_soundOff.png";
+import skullImg from "../assets/images/skull.png";
 //* Spritesheets
 import eyeballsSpriteSheet from "../assets/spritesheets/eyeballs.png";
 import eyeballsJSON from "../assets/spritesheets/eyeballs.json";

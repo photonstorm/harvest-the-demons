@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 // Images
-import backgroundImg from "../assets/background.jpg";
+import backgroundImg from "../assets/images/background.jpg";
 import constants from "../assets/configs/constants";
 import { alignGrid } from "../assets/configs/alignGrid";
 import { assetsDPR } from "../index";
