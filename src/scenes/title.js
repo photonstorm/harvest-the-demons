@@ -56,7 +56,9 @@ export default class TitleScene extends Phaser.Scene {
     alignGrid.center(container);
     
     this.sound.add("demon_theme");
-    this.sound.volume = 0.1;
-    this.sound.play("demon_theme");
+		this.sound.volume = 0.1;
+    this.sound.play("demon_theme", {
+			loop: true,
+		});
 	}
 }

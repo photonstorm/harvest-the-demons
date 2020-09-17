@@ -17,7 +17,7 @@ import ghostWarriorShape from "../assets/PhysicsEditor/ghost_warrior.json";
 import { RadToDeg, DegToRad, Between } from "phaser/src/math/";
 import { Normalize, Wrap } from "phaser/src/math/angle/";
 import { v4 as uuidv4 } from "uuid";
-import { assetsDPR } from "..";
+import { assetsDPR, WIDTH } from "..";
 import { alignGrid } from "../assets/configs/alignGrid";
 
 class playGame extends Phaser.Scene {
@@ -32,7 +32,7 @@ class playGame extends Phaser.Scene {
     this.afk = false;
     this.level = 0;
     this.score = 0;
-    this.maxDistance = this.game.config.height / 4;
+    this.maxDistance = this.game.config.height / 8;
     this.best = localStorage.getItem("best_score") ? parseInt(localStorage.getItem("best_score"), 10) : 0;
     this.levels = [
       {
@@ -88,21 +88,21 @@ class playGame extends Phaser.Scene {
       x: 0,
       y: 0,
       flipY: true,
-      width: this.cameras.main.width * assetsDPR,
+      width: this.cameras.main.width * assetsDPR * 4,
       origin: { x: 0, y: 0 },
-      scale: { x: 2, y: 1.5 },
+      scale: { x: 2.5, y: 2.5 },
     }).play('eye_twitch');
 
     //* Right
     this.make.sprite({
       key: "eyeballs",
-      x: this.cameras.main.width - this.cache.json.get("eyeballs").textures[0].size.h / 2,
+      x: this.cameras.main.width - this.cache.json.get("eyeballs").textures[0].size.h,
       y: 0,
       flipX: true,
       height: this.cameras.main.height * assetsDPR,
       rotation: -Math.PI / 2,
       origin: { x: 1, y: 0 },
-      scale: { x: 3, y: 2 },
+      scale: { x: 3, y: 5 },
     }).play('eye_twitch');
 
     //* Bottom
@@ -112,19 +112,19 @@ class playGame extends Phaser.Scene {
       y: this.cameras.main.height,
       width: this.cameras.main.width * assetsDPR,
       origin: { x: 0, y: 1 },
-      scale: { x: 2, y: 1.5 },
+      scale: { x: 2.5, y: 2.5 },
     }).play('eye_twitch');
 
     //* Left
     this.make.sprite({
       key: "eyeballs",
-      x: this.cache.json.get("eyeballs").textures[0].size.h / 2,
+      x: this.cache.json.get("eyeballs").textures[0].size.h,
       y: 0,
       flipX: true,
       height: this.cameras.main.height * assetsDPR,
       rotation: Math.PI / 2,
       origin: { x: 0, y: 0 },
-      scale: { x: 3, y: 2 },
+      scale: { x: 3, y: 5 },
     }).play('eye_twitch');
 
     this.input.mouse.disableContextMenu();
