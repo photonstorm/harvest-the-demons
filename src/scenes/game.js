@@ -59,8 +59,6 @@ class playGame extends Phaser.Scene {
     this.load.atlas("ghost_warrior", ghostWarriorSpriteSheet, ghostWarriorJSON);
     this.load.atlas("eyeballs", eyeballsSpriteSheet, eyeballsJSON);
 
-    this.load.audio("demon_theme", "src/assets/sound/demon_lord.mp3");
-
     alignGrid.create({ scene: this, rows: 10, columns: 10 });
     // Uncomment to see UI grid
     // alignGrid.showNumbers();
@@ -176,8 +174,7 @@ class playGame extends Phaser.Scene {
     this.soundOn.on("pointerdown", this.onToggleSound, this);
     this.soundOff.on("pointerdown", this.onToggleSound, this);
 
-    this.music = this.sound.add("demon_theme");
-    this.music.play();
+    this.sound.volume = 0.5;
 
     this.input.on("pointerdown", function (pointer) {
       if (pointer.leftButtonDown() && !this.player.isAttacking()) {
@@ -217,7 +214,7 @@ class playGame extends Phaser.Scene {
         localStorage.setItem("best_score", this.score);
         this.best = this.score;
       }
-
+      this.music.stop();
       this.scene.start("scoreScene", { score: this.score, best: this.best });
     }, 100000);
 

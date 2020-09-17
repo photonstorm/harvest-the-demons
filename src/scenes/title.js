@@ -10,7 +10,9 @@ export default class TitleScene extends Phaser.Scene {
 	}
 	init() {}
 	preload() {
-		this.load.image("background", backgroundImg);
+    this.load.image("background", backgroundImg);
+    
+    this.load.audio("demon_theme", "src/assets/sound/demon_lord.mp3");
 
 		alignGrid.create({ scene: this, rows: 10, columns: 10 });
 	}
@@ -34,28 +36,27 @@ export default class TitleScene extends Phaser.Scene {
 			fontFamily: constants.styles.text.fontFamily,
 		});
 
-		const playButton = this.add
-			.text(0, 0, "Play", {
-				fontSize: `${12 * assetsDPR}px`,
-				fontFamily: constants.styles.text.fontFamily,
-			})
-			.setInteractive()
-			.on("pointerover", function () {
-				this.setColor("red");
-			})
-			.on("pointerout", function () {
-				this.setColor("white");
-			})
-			.on(
-				"pointerup",
-				function () {
-					this.scene.start("playGame");
-				},
-				this
-			);
+		const playButton = this.add.text(0, 0, "Play", {
+			fontSize: `${12 * assetsDPR}px`,
+			fontFamily: constants.styles.text.fontFamily,
+		})
+		.setInteractive()
+		.on("pointerover", function () {
+			this.setColor("red");
+		})
+		.on("pointerout", function () {
+      this.setColor("white");
+    })
+		.on("pointerup", function () {
+      this.scene.start("playGame");
+    }, this);
 
 		container.add(title).add(playButton).layout();
 
-		alignGrid.center(container);
+    alignGrid.center(container);
+    
+    this.sound.add("demon_theme");
+    this.sound.volume = 0.1;
+    this.sound.play("demon_theme");
 	}
 }

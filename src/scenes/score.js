@@ -59,16 +59,14 @@ export default class ScoreScene extends Phaser.Scene {
 			.on("pointerout", function () {
 				this.setColor("white");
 			})
-			.on(
-				"pointerup",
-				function () {
-					this.scene.start("playGame");
-				},
-				this
-			);
+			.on("pointerup", function () {
+        this.scene.start("playGame");
+      }, this);
 
 		container.add(title).add(score).add(bestScore).add(playButton).layout();
 
 		alignGrid.center(container);
+
+		this.sound.volume = 0.1;
 	}
 }
