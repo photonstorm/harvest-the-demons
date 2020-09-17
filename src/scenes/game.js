@@ -200,8 +200,10 @@ class playGame extends Phaser.Scene {
     this.matter.world.on("collisionstart", function (event, bodyA, bodyB) {
         this.enemies[bodyB.label].tween.remove();
         this.enemies[bodyB.label].destroy();
-        this.score++;
-        this.scoreText.setText(`${this.score}`);
+        if (bodyA.label === 'axe') {
+          this.score++;
+          this.scoreText.setText(`${this.score}`);
+        }
       }, this);
 
     this.matter.world.on("collisionend", function (event, bodyA, bodyB) {

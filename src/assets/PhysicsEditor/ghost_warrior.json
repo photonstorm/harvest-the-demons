@@ -9,11 +9,6 @@
 		"friction": 0,
 		"frictionAir": 0,
 		"frictionStatic": 0,
-		"collisionFilter": {
-			"group": 0,
-			"category": 1,
-			"mask": 255
-		},
 		"fixtures": [
 			{
 				"label": "body",
@@ -43,8 +38,8 @@
 				}
 			},
 			{
-				"label": "",
-				"isSensor": false,
+				"label": "axe",
+				"isSensor": true,
 				"vertices": [
 					[ { "x":148, "y":220 }, { "x":34, "y":216 }, { "x":42, "y":235 } ]
 				]
