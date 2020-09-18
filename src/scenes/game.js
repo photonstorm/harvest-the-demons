@@ -32,6 +32,7 @@ class playGame extends Phaser.Scene {
     this.afk = false;
     this.level = 0;
     this.score = 0;
+    this.lives = 5;
     this.maxDistance = this.game.config.height / 8;
     this.best = localStorage.getItem("best_score") ? parseInt(localStorage.getItem("best_score"), 10) : 0;
     this.levels = [
@@ -58,6 +59,9 @@ class playGame extends Phaser.Scene {
 
     this.load.atlas("ghost_warrior", ghostWarriorSpriteSheet, ghostWarriorJSON);
     this.load.atlas("eyeballs", eyeballsSpriteSheet, eyeballsJSON);
+
+    this.load.audio("eye_kill", "src/assets/sound/industrial_tools_axe_chop_wood_009.mp3");
+    this.load.audio("player_damaged", "src/assets/sound/horror_monster_zombie_male_groan_005.mp3");
 
     alignGrid.create({ scene: this, rows: 10, columns: 10 });
     // Uncomment to see UI grid
@@ -198,8 +202,12 @@ class playGame extends Phaser.Scene {
         this.enemies[bodyB.label].tween.remove();
         this.enemies[bodyB.label].destroy();
         if (bodyA.label === 'axe') {
+          this.sound.play("eye_kill");
           this.score++;
           this.scoreText.setText(`${this.score}`);
+        }
+        else if (bodyA.label === 'body') {
+          this.sound.play("player_damaged");
         }
       }, this);
 
@@ -278,16 +286,23 @@ class playGame extends Phaser.Scene {
     }
   }
   getRandomCoordinates(position) {
+    //* Top
     if (position === 1) {
-      return { x: Between(0, 800), y: 0 };
-    } else if (position === 2) {
-      return { x: 0, y: Between(0, 600) };
-    } else if (position === 3) {
-      return { x: Between(0, 800), y: 600 };
-    } else if (position === 4) {
-      return { x: 0, y: Between(0, 600) };
+      return { x: Between(0, this.cameras.main.width), y: 0 };
     }
-    return { x: Between(0, 800), y: 0 };
+    //* Left
+    else if (position === 2) {
+      return { x: 0, y: Between(0, this.cameras.main.height) };
+    }
+    //* Bottom
+    else if (position === 3) {
+      return { x: Between(0, this.cameras.main.width), y: this.cameras.main.height };
+    }
+    //* Right
+    else if (position === 4) {
+      return { x: this.cameras.main.width, y: Between(0, this.cameras.main.height) };
+    }
+    return { x: Between(0, this.cameras.main.width), y: 0 };
   }
   createAnimation(key, name, prefix, start, end, suffix, yoyo, repeat) {
     this.anims.create({
