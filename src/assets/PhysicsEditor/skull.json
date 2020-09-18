@@ -1,0 +1,23 @@
+{
+	"generator_info": "Shape definitions generated with PhysicsEditor. Visit https://www.codeandweb.com/physicseditor",
+	"skull": {
+		"type": "fromPhysicsEditor",
+		"label": "skull_body",
+		"isStatic": false,
+		"density": 0,
+		"restitution": 0,
+		"friction": 0,
+		"frictionAir": 0,
+		"frictionStatic": 0,
+		"fixtures": [
+			{
+				"label": "skull",
+				"isSensor": true,
+				"vertices": [
+					[ { "x":529.5, "y":70 }, { "x":250, "y":-0.5 }, { "x":249, "y":-0.5 }, { "x":289, "y":1019.5 }, { "x":427, "y":972.5 }, { "x":629.5, "y":350 } ],
+					[ { "x":39, "y":209.5 }, { "x":7.5, "y":431 }, { "x":289, "y":1019.5 }, { "x":249, "y":-0.5 } ]
+				]
+			}
+		]
+	}
+}

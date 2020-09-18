@@ -12,8 +12,10 @@ import ghostWarriorJSON from "../assets/spritesheets/ghost-warrior.json";
 // Game Objects
 import Player from "../game-objects/player";
 import Enemy from "../game-objects/enemy";
+import Skull from "../game-objects/skull";
 //* Physics
 import ghostWarriorShape from "../assets/PhysicsEditor/ghost_warrior.json";
+import skullShape from "../assets/PhysicsEditor/skull.json";
 import { RadToDeg, DegToRad, Between } from "phaser/src/math/";
 import { Normalize, Wrap } from "phaser/src/math/angle/";
 import { v4 as uuidv4 } from "uuid";
@@ -42,8 +44,18 @@ class playGame extends Phaser.Scene {
         maxDelay: 2000,
         speed: 4000,
       },
-      {},
-      {},
+      {
+        targets: 10,
+        minDelay: 1000,
+        maxDelay: 2000,
+        speed: 4000,
+      },
+      {
+        targets: 10,
+        minDelay: 1000,
+        maxDelay: 2000,
+        speed: 4000,
+      },
     ];
     this.enemies = {};
   }
@@ -56,6 +68,7 @@ class playGame extends Phaser.Scene {
     this.load.image("skull", skullImg);
 
     this.load.json("ghost_warrior_shapes", ghostWarriorShape);
+    this.load.json("skull_shapes", skullShape);
 
     this.load.atlas("ghost_warrior", ghostWarriorSpriteSheet, ghostWarriorJSON);
     this.load.atlas("eyeballs", eyeballsSpriteSheet, eyeballsJSON);
@@ -132,24 +145,25 @@ class playGame extends Phaser.Scene {
     }).play('eye_twitch');
 
     this.input.mouse.disableContextMenu();
-    
-    //* Ice Skull
-    this.skull = this.add
-      .image(0, 0, "skull")
-      .setScale(assetsDPR / 10, assetsDPR / 10)
-      .setInteractive();
 
-    alignGrid.center(this.skull);
+    const circleX = this.game.config.width / 2 + assetsDPR * 50;
+    const circleY = this.game.config.height / 2;
+    const circleR = 50 * assetsDPR;
 
-    this.circle = new Phaser.Curves.Path(this.game.config.width / 2 + assetsDPR * 50, this.game.config.height / 2).circleTo(50 * assetsDPR);
+    this.circle = new Phaser.Curves.Path(circleX, circleY).circleTo(circleR);
 
     var graphics = this.add.graphics();
     graphics.lineStyle(1, 0xffffff, 1);
     this.circle.draw(graphics, 128);
 
+    //* Skull
+    this.skull = new Skull({ world: this.matter.world, x: 0, y: 0, key: "skull", shape: this.cache.json.get("skull_shapes").skull, circleX, circleY, circleR });
+
+    alignGrid.center(this.skull);
+
     //* Ghost Warrior
     var shapes = this.cache.json.get("ghost_warrior_shapes");
-    this.player = new Player({ world: this.matter.world, x: 400, y: 150, key: "ghost_warrior", shape: shapes.main_body, });
+    this.player = new Player({ world: this.matter.world, x: 400, y: 150, key: "ghost_warrior", shape: shapes.main_body });
     this.player.setAngle(this.position * 360);
     Phaser.Display.Align.In.Center(this.player, this.add.zone(400, 300, 800, 600));
     this.player.on("animationcomplete", this.animComplete, this);
@@ -184,7 +198,7 @@ class playGame extends Phaser.Scene {
       if (pointer.leftButtonDown() && !this.player.isAttacking()) {
         this.player.anims.play("attack");
       }
-      }, this);
+    }, this);
 
     document.addEventListener("mouseout", () => {
       this.player.anims.play("idle");
@@ -199,17 +213,19 @@ class playGame extends Phaser.Scene {
     }, this);
 
     this.matter.world.on("collisionstart", function (event, bodyA, bodyB) {
-        this.enemies[bodyB.label].tween.remove();
-        this.enemies[bodyB.label].destroy();
-        if (bodyA.label === 'axe') {
-          this.sound.play("eye_kill");
-          this.score++;
-          this.scoreText.setText(`${this.score}`);
-        }
-        else if (bodyA.label === 'body') {
-          this.sound.play("player_damaged");
-        }
-      }, this);
+      if (bodyA.label === "skull" && bodyB.label.length < 5) return;
+      this.enemies[bodyB.label].tween.remove();
+      this.enemies[bodyB.label].destroy();
+      if (bodyA.label === 'axe' && !this.afk) {
+        this.sound.play("eye_kill");
+        this.score++;
+        this.scoreText.setText(`${this.score}`);
+      }
+      else if (bodyA.label === 'body') {
+        this.sound.play("player_damaged");
+        this.player.anims.play("hit");
+      }
+    }, this);
 
     this.matter.world.on("collisionend", function (event, bodyA, bodyB) {
     }, this);
