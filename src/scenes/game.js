@@ -26,13 +26,13 @@ class playGame extends Phaser.Scene {
   constructor() {
     super("playGame");
   }
-  init() {
+  init({ level }) {
     this.accumMS = 0;
     this.hzMS = (1 / 60) * 1000;
     this.position = 0.5;
     this.step = 0.01;
     this.afk = false;
-    this.level = 0;
+    this.level = level || 0;
     this.score = 0;
     this.lives = 5;
     this.maxDistance = this.game.config.height / 8;
@@ -58,6 +58,7 @@ class playGame extends Phaser.Scene {
       },
     ];
     this.enemies = {};
+    this.remainingTargets = this.levels[this.level].targets;
   }
 
   preload() {
@@ -213,17 +214,28 @@ class playGame extends Phaser.Scene {
     }, this);
 
     this.matter.world.on("collisionstart", function (event, bodyA, bodyB) {
-      if (bodyA.label === "skull" && bodyB.label.length < 5) return;
-      this.enemies[bodyB.label].tween.remove();
-      this.enemies[bodyB.label].destroy();
+      if (bodyA.label === "skull" && bodyB.label.length <= 5) return;
       if (bodyA.label === 'axe' && !this.afk) {
-        this.sound.play("eye_kill");
+        this.killEnemy(bodyB.label);
         this.score++;
         this.scoreText.setText(`${this.score}`);
+        this.sound.play("eye_kill");
       }
       else if (bodyA.label === 'body') {
-        this.sound.play("player_damaged");
+        this.killEnemy(bodyB.label);
         this.player.anims.play("hit");
+        this.sound.play("player_damaged");
+      }
+      //! Melee frames 8 - 12
+      //* Check the current frame 
+      else if (Boolean(this.player.anims.currentFrame.textureFrame.match(/attack[8-9]|attack1[02]/gi))) {
+        this.killEnemy(bodyB.label);
+        this.score++;
+        this.scoreText.setText(`${this.score}`);
+        this.sound.play("eye_kill");
+      }
+      if (this.remainingTargets === 0) {
+        this.roundOver();
       }
     }, this);
 
@@ -231,16 +243,6 @@ class playGame extends Phaser.Scene {
     }, this);
 
     this.initEnemies();
-
-    // TODO: End game after ??
-    setTimeout(() => {
-      if (this.score > this.best) {
-        localStorage.setItem("best_score", this.score);
-        this.best = this.score;
-      }
-      this.music.stop();
-      this.scene.start("scoreScene", { score: this.score, best: this.best });
-    }, 100000);
 
     this.cameras.main.fadeIn(500);
   }
@@ -265,6 +267,17 @@ class playGame extends Phaser.Scene {
     while (this.accumMS >= this.hzMS) {
       this.accumMS -= this.hzMS;
     }
+  }
+  roundOver() {
+    if (this.score > this.best) {
+      localStorage.setItem("best_score", this.score);
+      this.best = this.score;
+    }
+    // this.scene.start("scoreScene", { score: this.score, best: this.best, level: ++this.level });
+  }
+  killEnemy(label) {
+    this.enemies[label].tween.remove();
+    this.enemies[label].destroy();
   }
   initEnemies() {
     var delay = 0;

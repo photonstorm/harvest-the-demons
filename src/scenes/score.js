@@ -8,9 +8,10 @@ export default class ScoreScene extends Phaser.Scene {
 	constructor() {
 		super("scoreScene");
 	}
-	init(data) {
-		this.score = data.score;
-		this.best = data.best;
+	init({ score, best, level }) {
+		this.score = score;
+		this.best = best;
+		this.level = level;
 	}
 	preload() {
 		this.load.image("background", backgroundImg);
@@ -60,8 +61,8 @@ export default class ScoreScene extends Phaser.Scene {
 				this.setColor("white");
 			})
 			.on("pointerup", function () {
-        this.scene.start("playGame");
-      }, this);
+				this.scene.start("playGame", { level: this.level });
+			}, this);
 
 		container.add(title).add(score).add(bestScore).add(playButton).layout();
 
