@@ -3,6 +3,7 @@ import playGame from "./scenes/game";
 import "./css/style.css";
 import titleScene from "./scenes/title";
 import scoreScene from "./scenes/score";
+import gameOverScene from "./scenes/gameOver";
 import RexUIPlugin from "phaser3-rex-plugins/templates/ui/ui-plugin.js";
 import { alignGrid } from "./assets/configs/alignGrid";
 
@@ -31,10 +32,10 @@ const config = {
   physics: {
     default: "matter",
     matter: {
-      debug: true,
+      debug: false,
     },
   },
-  scene: [titleScene, playGame, scoreScene],
+  scene: [titleScene, playGame, scoreScene, gameOverScene],
   plugins: {
     scene: [
       {

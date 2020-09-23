@@ -4,18 +4,12 @@ import backgroundImg from "../assets/images/background.jpg";
 import constants from "../assets/configs/constants";
 import { alignGrid } from "../assets/configs/alignGrid";
 import { assetsDPR } from "../index";
-export default class ScoreScene extends Phaser.Scene {
+export default class GameOverScene extends Phaser.Scene {
 	constructor() {
 		super("scoreScene");
-	}
-	init({ score, best, level }) {
-		this.score = score;
-		this.best = best;
-		this.level = level;
-	}
+    }
 	preload() {
-		this.load.image("background", backgroundImg);
-
+        this.load.image("background", backgroundImg);
 		alignGrid.create({ scene: this, rows: 10, columns: 10 });
 	}
 	create() {
@@ -33,38 +27,24 @@ export default class ScoreScene extends Phaser.Scene {
 			space: { item: 50 },
 		});
 
-		const title = this.add.text(0, 0, "Game Over", {
+		const resume = this.add.text(0, 0, "Continue", {
 			fontSize: `${36 * assetsDPR}px`,
 			fontFamily: constants.styles.text.fontFamily,
-		});
+        })
+        .setInteractive()
+        .on("pointerover", function () {
+            this.setColor("green");
+        })
+        .on("pointerout", function () {
+            this.setColor("white");
+        })
+        .on("pointerup", function () {
+            this.scene.stop("scoreScene");
+            this.sound.volume = 0.5;
+            this.scene.wake("playGame");
+        }, this);
 
-		const score = this.add.text(0, 0, `Score ${this.score}`, {
-			fontSize: `${24 * assetsDPR}px`,
-			fontFamily: constants.styles.text.fontFamily,
-		});
-
-		const bestScore = this.add.text(0, 0, `High Score ${this.best}`, {
-			fontSize: `${24 * assetsDPR}px`,
-			fontFamily: constants.styles.text.fontFamily,
-		});
-
-		const playButton = this.add
-			.text(0, 0, `Play Again`, {
-				fontSize: `${12 * assetsDPR}px`,
-				fontFamily: constants.styles.text.fontFamily,
-			})
-			.setInteractive()
-			.on("pointerover", function () {
-				this.setColor("red");
-			})
-			.on("pointerout", function () {
-				this.setColor("white");
-			})
-			.on("pointerup", function () {
-				this.scene.start("playGame", { level: this.level });
-			}, this);
-
-		container.add(title).add(score).add(bestScore).add(playButton).layout();
+		container.add(resume).layout();
 
 		alignGrid.center(container);
 

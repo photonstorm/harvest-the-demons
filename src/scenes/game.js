@@ -32,6 +32,7 @@ class playGame extends Phaser.Scene {
     this.position = 0.5;
     this.step = 0.01;
     this.afk = false;
+    this.isShaking = false;
     this.level = level || 0;
     this.score = 0;
     this.lives = 5;
@@ -39,10 +40,10 @@ class playGame extends Phaser.Scene {
     this.best = localStorage.getItem("best_score") ? parseInt(localStorage.getItem("best_score"), 10) : 0;
     this.levels = [
       {
-        targets: 10,
+        targets: 3,
         minDelay: 1000,
         maxDelay: 2000,
-        speed: 4000,
+        speed: 6000,
       },
       {
         targets: 10,
@@ -51,7 +52,7 @@ class playGame extends Phaser.Scene {
         speed: 4000,
       },
       {
-        targets: 10,
+        targets: 20,
         minDelay: 1000,
         maxDelay: 2000,
         speed: 4000,
@@ -77,6 +78,7 @@ class playGame extends Phaser.Scene {
     this.load.audio("eye_kill", "src/assets/sound/industrial_tools_axe_chop_wood_009.mp3");
     this.load.audio("axe_swing", "src/assets/sound/zapsplat_warfare_weapon_axe_large_object_swing_swoosh_002.mp3");
     this.load.audio("player_damaged", "src/assets/sound/horror_monster_zombie_male_groan_005.mp3");
+    this.load.audio("skull_damaged", "src/assets/sound/zapsplat_horror_zombie_male_groan_growl_11766.mp3");
 
     alignGrid.create({ scene: this, rows: 10, columns: 10 });
     // Uncomment to see UI grid
@@ -216,7 +218,16 @@ class playGame extends Phaser.Scene {
 
     this.matter.world.on("collisionstart", function (event, bodyA, bodyB) {
       if (bodyA.label === "skull" && bodyB.label.length <= 5) return;
-      if (bodyA.label === 'axe' && !this.afk) {
+      if (bodyA.label === "skull" && bodyB.label.length > 5) {
+        this.killEnemy(bodyB.label);
+        this.lives -= 1;
+        this.sound.play("skull_damaged");
+        if (this.remainingTargets > 0) {
+          this.cameras.main.shake(1000);
+          return;
+        }
+      }
+      else if (bodyA.label === 'axe' && !this.afk) {
         this.killEnemy(bodyB.label);
         this.score++;
         this.scoreText.setText(`${this.score}`);
@@ -243,13 +254,13 @@ class playGame extends Phaser.Scene {
     this.matter.world.on("collisionend", function (event, bodyA, bodyB) {
     }, this);
 
-    this.player.on("animationupdate-attack", this.test, this);
+    this.player.on("animationupdate-attack", this.onMeleeAnimation, this);
 
     this.initEnemies();
 
     this.cameras.main.fadeIn(500);
   }
-  test(animation, animationFrame) {
+  onMeleeAnimation(animation, animationFrame) {
     const { index } = animationFrame;
     if (index === 8) this.sound.play("axe_swing");
   }
@@ -280,11 +291,20 @@ class playGame extends Phaser.Scene {
       localStorage.setItem("best_score", this.score);
       this.best = this.score;
     }
-    // this.scene.start("scoreScene", { score: this.score, best: this.best, level: ++this.level });
+    if (this.level < this.levels.length - 1) {
+      this.scene.sleep("playGame");
+      this.level += 1;
+      this.initEnemies();
+      this.remainingTargets = this.levels[this.level].targets;
+      this.scene.launch("scoreScene");
+    } else {
+      this.scene.start("gameOverScene", { score: this.score, best: this.best });
+    }
   }
   killEnemy(label) {
     this.enemies[label].tween.remove();
     this.enemies[label].destroy();
+    this.remainingTargets -= 1;
   }
   initEnemies() {
     var delay = 0;
@@ -318,6 +338,12 @@ class playGame extends Phaser.Scene {
         },
         delay,
         duration: speed,
+        onComplete: function () {
+          this.killEnemy(key);
+          this.lives -= 1;
+          this.sound.play("skull_damaged");
+          this.cameras.main.shake(1000);
+        }.bind(this),
       });
     }
   }
@@ -362,11 +388,11 @@ class playGame extends Phaser.Scene {
     if (this.soundOn.active) {
       this.soundOn.setActive(false).setVisible(false);
       this.soundOff.setActive(true).setVisible(true);
-      this.music.stop();
+      this.sound.volume = 0;
     } else if (this.soundOff.active) {
       this.soundOff.setActive(false).setVisible(false);
       this.soundOn.setActive(true).setVisible(true);
-      this.music.play();
+      this.sound.volume = 0.5;
     }
   }
   isEnemyNear(source, target) {
