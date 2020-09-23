@@ -75,6 +75,7 @@ class playGame extends Phaser.Scene {
     this.load.atlas("eyeballs", eyeballsSpriteSheet, eyeballsJSON);
 
     this.load.audio("eye_kill", "src/assets/sound/industrial_tools_axe_chop_wood_009.mp3");
+    this.load.audio("axe_swing", "src/assets/sound/zapsplat_warfare_weapon_axe_large_object_swing_swoosh_002.mp3");
     this.load.audio("player_damaged", "src/assets/sound/horror_monster_zombie_male_groan_005.mp3");
 
     alignGrid.create({ scene: this, rows: 10, columns: 10 });
@@ -84,12 +85,12 @@ class playGame extends Phaser.Scene {
   create() {
 
     //* Create the animations
-    this.createAnimation("fly", "ghost_warrior", "fly", 1, 5, ".png", true, -1);
-    this.createAnimation("attack", "ghost_warrior", "Attack", 1, 11, ".png", false, 0);
-    this.createAnimation("idle", "ghost_warrior", "idle", 1, 5, ".png", true, -1);
-    this.createAnimation("hit", "ghost_warrior", "hit", 1, 6, ".png", false, 0);
-    this.createAnimation("death", "ghost_warrior", "death", 1, 8, ".png", false, 0);
-    this.createAnimation("eye_twitch", "eyeballs", "eyeball", 1, 5, ".png", false, -1);
+    this.createAnimation("fly", "ghost_warrior", "fly", 1, 5, ".png", true, -1, 10);
+    this.createAnimation("attack", "ghost_warrior", "Attack", 1, 11, ".png", false, 0, 20);
+    this.createAnimation("idle", "ghost_warrior", "idle", 1, 5, ".png", true, -1, 10);
+    this.createAnimation("hit", "ghost_warrior", "hit", 1, 6, ".png", false, 0, 20);
+    this.createAnimation("death", "ghost_warrior", "death", 1, 8, ".png", false, 30);
+    this.createAnimation("eye_twitch", "eyeballs", "eyeball", 1, 5, ".png", false, -1, 3);
 
     this.make.image({
       key: "background",
@@ -242,9 +243,15 @@ class playGame extends Phaser.Scene {
     this.matter.world.on("collisionend", function (event, bodyA, bodyB) {
     }, this);
 
+    this.player.on("animationupdate-attack", this.test, this);
+
     this.initEnemies();
 
     this.cameras.main.fadeIn(500);
+  }
+  test(animation, animationFrame) {
+    const { index } = animationFrame;
+    if (index === 8) this.sound.play("axe_swing");
   }
   update(time, delta) {
     this.accumMS += delta;
@@ -333,7 +340,7 @@ class playGame extends Phaser.Scene {
     }
     return { x: Between(0, this.cameras.main.width), y: 0 };
   }
-  createAnimation(key, name, prefix, start, end, suffix, yoyo, repeat) {
+  createAnimation(key, name, prefix, start, end, suffix, yoyo, repeat, frameRate) {
     this.anims.create({
       key: key,
       frames: this.anims.generateFrameNames(name, {
@@ -342,7 +349,7 @@ class playGame extends Phaser.Scene {
         end,
         suffix,
       }),
-      frameRate: 10,
+      frameRate,
       yoyo,
       repeat,
     });
