@@ -36,7 +36,7 @@ class playGame extends Phaser.Scene {
     this.level = level || 0;
     this.score = 0;
     this.lives = 5;
-    this.maxDistance = this.game.config.height / 8;
+    this.maxDistance = 310;
     this.best = localStorage.getItem("best_score") ? parseInt(localStorage.getItem("best_score"), 10) : 0;
     this.levels = [
       {
@@ -150,15 +150,14 @@ class playGame extends Phaser.Scene {
 
     this.input.mouse.disableContextMenu();
 
-    const circleX = this.game.config.width / 2 + assetsDPR * 50;
+    const circleX = this.game.config.width / 2;
     const circleY = this.game.config.height / 2;
-    const circleR = 50 * assetsDPR;
+    const circleR = 75 * assetsDPR;
 
-    this.circle = new Phaser.Curves.Path(circleX, circleY).circleTo(circleR);
+    this.circle = new Phaser.Geom.Circle(circleX, circleY, circleR);
 
-    var graphics = this.add.graphics();
-    graphics.lineStyle(1, 0xffffff, 1);
-    this.circle.draw(graphics, 128);
+    var graphics = this.add.graphics({ fillStyle: { color: 0xff0000 } });
+    graphics.fillCircleShape(this.circle);
 
     //* Skull
     this.skull = new Skull({ world: this.matter.world, x: 0, y: 0, key: "skull", shape: this.cache.json.get("skull_shapes").skull, circleX, circleY, circleR });
@@ -223,7 +222,7 @@ class playGame extends Phaser.Scene {
         this.lives -= 1;
         this.sound.play("skull_damaged");
         if (this.remainingTargets > 0) {
-          this.cameras.main.shake(1000);
+          this.cameras.main.shake(200);
           return;
         }
       }
@@ -267,19 +266,24 @@ class playGame extends Phaser.Scene {
   update(time, delta) {
     this.accumMS += delta;
     if (this.accumMS >= this.hzMS) {
-      const distance = this.distanceTo(this.player, this.input.activePointer);
-      if (!this.player.isAttacking() && !this.afk && distance > this.maxDistance) {
+      if (!this.player.isAttacking() && !this.afk) {
         var { x, y } = this.circle.getPoint(this.position);
         let { worldX, worldY } = this.input.activePointer;
 
         const angle = Math.atan2(worldY - y, worldX - x);
         const newAngle = RadToDeg(Normalize(Wrap(angle)));
 
-        this.position = newAngle / 360;
-        this.player.rotation = DegToRad(newAngle + 180);
+        const position = newAngle / 360;
+        const rotation = DegToRad(newAngle + 180);
 
-        const p = this.circle.getPoint(this.position);
-        this.player.setPosition(p.x, p.y);
+        const p = this.circle.getPoint(position);
+
+        const distance = this.distanceTo(this.player, this.input.activePointer);
+        if (!this.circle.contains(worldX, worldY) && distance > this.maxDistance) {
+          this.position = position;
+          this.player.rotation = rotation;
+          this.player.setPosition(p.x, p.y);
+        }
       }
     }
     while (this.accumMS >= this.hzMS) {
@@ -342,7 +346,7 @@ class playGame extends Phaser.Scene {
           this.killEnemy(key);
           this.lives -= 1;
           this.sound.play("skull_damaged");
-          this.cameras.main.shake(1000);
+          this.cameras.main.shake(200);
         }.bind(this),
       });
     }
