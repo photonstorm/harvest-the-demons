@@ -32,7 +32,7 @@ const config = {
   physics: {
     default: "matter",
     matter: {
-      debug: false,
+      debug: true,
     },
   },
   scene: [titleScene, playGame, scoreScene, gameOverScene],

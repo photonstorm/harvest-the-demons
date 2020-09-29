@@ -155,9 +155,11 @@ class playGame extends Phaser.Scene {
     const circleR = 75 * assetsDPR;
 
     this.circle = new Phaser.Geom.Circle(circleX, circleY, circleR);
+    this.targetLine = new Phaser.Geom.Line(circleX, circleY, circleX, circleY);
 
     var graphics = this.add.graphics({ fillStyle: { color: 0xff0000 } });
     graphics.fillCircleShape(this.circle);
+    graphics.setAlpha(0.1);
 
     //* Skull
     this.skull = new Skull({ world: this.matter.world, x: 0, y: 0, key: "skull", shape: this.cache.json.get("skull_shapes").skull, circleX, circleY, circleR });
@@ -196,6 +198,7 @@ class playGame extends Phaser.Scene {
     this.soundOff.on("pointerdown", this.onToggleSound, this);
 
     this.sound.volume = 0.5;
+    // this.sound.volume = 0;
 
     this.input.on("pointerdown", function (pointer) {
       if (pointer.leftButtonDown() && !this.player.isAttacking()) {
@@ -258,34 +261,77 @@ class playGame extends Phaser.Scene {
     this.initEnemies();
 
     this.cameras.main.fadeIn(500);
+
+    //  0 = left, 1 = right
+    this.currentSide = 1;
+
+    this.debugG = this.add.graphics();
+
   }
   onMeleeAnimation(animation, animationFrame) {
     const { index } = animationFrame;
     if (index === 8) this.sound.play("axe_swing");
   }
   update(time, delta) {
+
     this.accumMS += delta;
+
     if (this.accumMS >= this.hzMS) {
+
       if (!this.player.isAttacking() && !this.afk) {
-        var { x, y } = this.circle.getPoint(this.position);
-        let { worldX, worldY } = this.input.activePointer;
 
-        const angle = Math.atan2(worldY - y, worldX - x);
-        const newAngle = RadToDeg(Normalize(Wrap(angle)));
+        //  Project a line from the center of the circle to the pointer
+        this.targetLine.x2 = this.input.activePointer.worldX;
+        this.targetLine.y2 = this.input.activePointer.worldY;
 
-        const position = newAngle / 360;
-        const rotation = DegToRad(newAngle + 180);
+        var lineLength = Phaser.Geom.Line.Length(this.targetLine);
+        var lineAngle = Phaser.Geom.Line.Angle(this.targetLine);
+        var angleDeg = Phaser.Math.RadToDeg(lineAngle);
 
-        const p = this.circle.getPoint(position);
+        this.player.setPosition(this.targetLine.x1, this.targetLine.y1);
 
-        const distance = this.distanceTo(this.player, this.input.activePointer);
-        if (!this.circle.contains(worldX, worldY) && distance > this.maxDistance) {
-          this.position = position;
-          this.player.rotation = rotation;
-          this.player.setPosition(p.x, p.y);
+        //  If you only want to rotate the player when the line is close, use
+        //  the 'lineLength' value to perform that check.
+        this.player.setRotation(lineAngle);
+
+        //  Flip the player based on which side of the circle he's on
+
+        var rightQuadrant = (angleDeg < 90 && angleDeg > -90);
+        var leftQuadrant = !rightQuadrant;
+
+        if (this.currentSide === 0 && rightQuadrant)
+        {
+          //  Player now on right side of circle
+          this.currentSide = 1;
+          this.player.flipY = false;
         }
+        else if (this.currentSide === 1 && leftQuadrant)
+        {
+          //  Player now on left side of circle
+          this.currentSide = 0;
+          this.player.flipY = true;
+        }
+
+        //  Un-comment this bit to see the debug line drawn
+        //  Don't forget to remove `this.debugG` from the create method when you're done testing:
+
+        /*
+        this.debugG.clear();
+
+        if (lineLength > 300)
+        {
+          this.debugG.lineStyle(2, 0x00ff00);
+        }
+        else
+        {
+          this.debugG.lineStyle(2, 0xff0000);
+        }
+
+        this.debugG.strokeLineShape(this.targetLine);
+        */
       }
     }
+
     while (this.accumMS >= this.hzMS) {
       this.accumMS -= this.hzMS;
     }
