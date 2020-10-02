@@ -168,10 +168,11 @@ class playGame extends Phaser.Scene {
 
     //* Ghost Warrior
     var shapes = this.cache.json.get("ghost_warrior_shapes");
-    this.player = new Player({ world: this.matter.world, x: 400, y: 150, key: "ghost_warrior", shape: shapes.main_body });
-    this.player.setAngle(this.position * 360);
+
+    this.player = new Player(this, { world: this.matter.world, x: 400, y: 150, key: "ghost_warrior", shape: shapes.main_body });
+
     Phaser.Display.Align.In.Center(this.player, this.add.zone(400, 300, 800, 600));
-    this.player.on("animationcomplete", this.animComplete, this);
+
     Phaser.Display.Align.In.TopCenter(this.player, this.skull);
 
     this.scoreText = this.add.text(0, 0, `${this.score}`, { fontSize: 16 * assetsDPR }).setOrigin(0.5, 0.5);
@@ -197,21 +198,21 @@ class playGame extends Phaser.Scene {
     this.soundOn.on("pointerdown", this.onToggleSound, this);
     this.soundOff.on("pointerdown", this.onToggleSound, this);
 
-    this.sound.volume = 0.5;
-    // this.sound.volume = 0;
+    // this.sound.volume = 0.5;
+    this.sound.volume = 0;
 
     this.input.on("pointerdown", function (pointer) {
-      if (pointer.leftButtonDown() && !this.player.isAttacking()) {
-        this.player.anims.play("attack");
+      if (pointer.leftButtonDown()) {
+        this.player.attack();
       }
     }, this);
 
     document.addEventListener("mouseout", () => {
-      this.player.anims.play("idle");
+      this.player.idle();
       this.afk = true;
     });
     document.addEventListener("mouseenter", () => {
-      this.player.anims.play("fly");
+      this.player.fly();
       this.afk = false;
     });
 
@@ -237,12 +238,11 @@ class playGame extends Phaser.Scene {
       }
       else if (bodyA.label === 'body') {
         this.killEnemy(bodyB.label);
-        this.player.anims.play("hit");
-        this.sound.play("player_damaged");
+        this.player.hit();
       }
       //! Melee frames 8 - 12
       //* Check the current frame 
-      else if (Boolean(this.player.anims.currentFrame.textureFrame.match(/attack[8-9]|attack1[02]/gi))) {
+      else if (this.player.isMelee()) {
         this.killEnemy(bodyB.label);
         this.score++;
         this.scoreText.setText(`${this.score}`);
@@ -256,22 +256,11 @@ class playGame extends Phaser.Scene {
     this.matter.world.on("collisionend", function (event, bodyA, bodyB) {
     }, this);
 
-    this.player.on("animationupdate-attack", this.onMeleeAnimation, this);
-
     this.initEnemies();
 
     this.cameras.main.fadeIn(500);
-
-    //  0 = left, 1 = right
-    this.currentSide = 1;
-
-    this.debugG = this.add.graphics();
-
   }
-  onMeleeAnimation(animation, animationFrame) {
-    const { index } = animationFrame;
-    if (index === 8) this.sound.play("axe_swing");
-  }
+
   update(time, delta) {
 
     this.accumMS += delta;
@@ -284,51 +273,7 @@ class playGame extends Phaser.Scene {
         this.targetLine.x2 = this.input.activePointer.worldX;
         this.targetLine.y2 = this.input.activePointer.worldY;
 
-        var lineLength = Phaser.Geom.Line.Length(this.targetLine);
-        var lineAngle = Phaser.Geom.Line.Angle(this.targetLine);
-        var angleDeg = Phaser.Math.RadToDeg(lineAngle);
-
-        this.player.setPosition(this.targetLine.x1, this.targetLine.y1);
-
-        //  If you only want to rotate the player when the line is close, use
-        //  the 'lineLength' value to perform that check.
-        this.player.setRotation(lineAngle);
-
-        //  Flip the player based on which side of the circle he's on
-
-        var rightQuadrant = (angleDeg < 90 && angleDeg > -90);
-        var leftQuadrant = !rightQuadrant;
-
-        if (this.currentSide === 0 && rightQuadrant)
-        {
-          //  Player now on right side of circle
-          this.currentSide = 1;
-          this.player.flipY = false;
-        }
-        else if (this.currentSide === 1 && leftQuadrant)
-        {
-          //  Player now on left side of circle
-          this.currentSide = 0;
-          this.player.flipY = true;
-        }
-
-        //  Un-comment this bit to see the debug line drawn
-        //  Don't forget to remove `this.debugG` from the create method when you're done testing:
-
-        /*
-        this.debugG.clear();
-
-        if (lineLength > 300)
-        {
-          this.debugG.lineStyle(2, 0x00ff00);
-        }
-        else
-        {
-          this.debugG.lineStyle(2, 0xff0000);
-        }
-
-        this.debugG.strokeLineShape(this.targetLine);
-        */
+        this.player.update(this.targetLine);
       }
     }
 
@@ -336,6 +281,7 @@ class playGame extends Phaser.Scene {
       this.accumMS -= this.hzMS;
     }
   }
+
   roundOver() {
     if (this.score > this.best) {
       localStorage.setItem("best_score", this.score);
@@ -351,11 +297,25 @@ class playGame extends Phaser.Scene {
       this.scene.start("gameOverScene", { score: this.score, best: this.best });
     }
   }
+
   killEnemy(label) {
-    this.enemies[label].tween.remove();
-    this.enemies[label].destroy();
-    this.remainingTargets -= 1;
+
+    console.log(label);
+
+    if (this.enemies[label])
+    {
+      if (this.enemies[label].tween)
+      {
+        this.enemies[label].tween.remove();
+      }
+
+      this.enemies[label].destroy();
+
+      this.remainingTargets -= 1;
+    }
+
   }
+
   initEnemies() {
     var delay = 0;
     const { minDelay, maxDelay, speed, targets } = this.levels[this.level];
@@ -397,6 +357,7 @@ class playGame extends Phaser.Scene {
       });
     }
   }
+
   getRandomCoordinates(position) {
     //* Top
     if (position === 1) {
@@ -416,6 +377,7 @@ class playGame extends Phaser.Scene {
     }
     return { x: Between(0, this.cameras.main.width), y: 0 };
   }
+
   createAnimation(key, name, prefix, start, end, suffix, yoyo, repeat, frameRate) {
     this.anims.create({
       key: key,
@@ -430,9 +392,7 @@ class playGame extends Phaser.Scene {
       repeat,
     });
   }
-  animComplete(animation, frame) {
-    this.player.anims.play("fly");
-  }
+
   onToggleSound(pointer, x, y, e) {
     e.stopPropagation();
     if (this.soundOn.active) {
@@ -445,10 +405,12 @@ class playGame extends Phaser.Scene {
       this.sound.volume = 0.5;
     }
   }
+
   isEnemyNear(source, target) {
     if (this.distanceTo(source, target) < 200) return true;
     return false;
   }
+
   distanceTo(source, target) {
     let dx = source.x - target.x;
     let dy = source.y - target.y;
